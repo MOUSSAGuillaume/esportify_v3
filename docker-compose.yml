@@ -10,12 +10,12 @@ services:
       - php
 
   php:
-    image: php:8.3-fpm-alpine
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
     working_dir: /var/www/html
     volumes:
       - ./backend:/var/www/html
-    environment:
-      APP_ENV: local
 
   mysql:
     image: mysql:8.0
