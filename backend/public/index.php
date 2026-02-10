@@ -10,6 +10,7 @@ session_start();
 use App\Controller\AuthController;
 use App\Repository\UserRepository;
 use App\Service\AuthService;
+use App\Middleware\AuthMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -47,4 +48,16 @@ if ($path === '/logout' && $method === 'POST') {
     exit;
 }
 
+if ($path === '/me' && $method === 'GET') {
+    $controller = new AuthController(new AuthService(new UserRepository($pdo)));
+    $controller->me();
+    exit;
+}
+
+if ($path === '/admin/ping' && $method === 'GET') {
+    AuthMiddleware::requireRole(['ADMIN']);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['ok' => true, 'message' => 'admin access ok'], JSON_UNESCAPED_UNICODE);
+    exit;
+}
 echo json_encode(['message' => 'API Esportify']);
