@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 namespace App\Controller;
 
+use App\Security\Csrf;
 use App\Service\AuthService;
 use Throwable;
 
@@ -60,7 +61,20 @@ final class AuthController
     public function logout(): void
     {
         header('Content-Type: application/json; charset=utf-8');
+        // 1) Nginx/PHP-FPM: headers are often available via $_SERVER
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
 
+        // 2) Fallback: getallheaders() (si dispo)
+        if (!$csrf && function_exists('getallheaders')) {
+            $headers = getallheaders();
+            $csrf = $headers['X-CSRF-Token'] ?? $headers['x-csrf-token'] ?? null;
+        }
+
+        // 3) Clean token
+        $csrf = is_string($csrf) ? trim($csrf, " \t\n\r\0\x0B\"'") : null;
+
+        if (!Csrf::validate($csrf)) {}
+        
         $_SESSION = [];
 
         if (ini_get("session.use_cookies")) {

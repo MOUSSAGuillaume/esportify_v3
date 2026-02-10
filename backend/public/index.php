@@ -11,6 +11,7 @@ use App\Controller\AuthController;
 use App\Repository\UserRepository;
 use App\Service\AuthService;
 use App\Middleware\AuthMiddleware;
+use App\Security\Csrf;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -60,4 +61,11 @@ if ($path === '/admin/ping' && $method === 'GET') {
     echo json_encode(['ok' => true, 'message' => 'admin access ok'], JSON_UNESCAPED_UNICODE);
     exit;
 }
+
+if ($path === '/csrf' && $method === 'GET') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['csrfToken' => Csrf::token()], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
 echo json_encode(['message' => 'API Esportify']);
