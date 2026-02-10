@@ -1,5 +1,11 @@
 <?php
 declare(strict_types=1);
+ini_set('session.use_strict_mode', '1');
+ini_set('session.cookie_httponly', '1');
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.cookie_secure', '0'); // local http
+
+session_start();
 
 use App\Controller\AuthController;
 use App\Repository\UserRepository;
@@ -22,6 +28,22 @@ if ($path === '/register' && $method === 'POST') {
         new AuthService(new UserRepository($pdo))
     );
     $controller->register();
+    exit;
+}
+
+if ($path === '/login' && $method === 'POST') {
+    $controller = new AuthController(
+        new AuthService(new UserRepository($pdo))
+    );
+    $controller->login();
+    exit;
+}
+
+if ($path === '/logout' && $method === 'POST') {
+    $controller = new AuthController(
+        new AuthService(new UserRepository($pdo))
+    );
+    $controller->logout();
     exit;
 }
 

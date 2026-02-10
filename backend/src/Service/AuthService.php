@@ -28,4 +28,25 @@ final class AuthService
         $hash = PasswordHasher::hash($password);
         $this->users->create($email, $hash, $pseudo);
     }
+
+    public function login(string $email, string $password): array
+    {
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            throw new InvalidArgumentException("Email invalide");
+        }
+
+        $user = $this->users->findByEmail($email);
+
+        // message volontairement générique (sécurité)
+        if (!$user || !PasswordHasher::verify($password, $user['password_hash'])) {
+            throw new InvalidArgumentException("Identifiants invalides");
+        }
+
+        return [
+            'id' => (int) $user['id'],
+            'email' => $user['email'],
+            'pseudo' => $user['pseudo'],
+            'role' => $user['role'],
+        ];
+    }
 }

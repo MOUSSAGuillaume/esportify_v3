@@ -30,4 +30,49 @@ final class AuthController
             echo json_encode(['error' => $e->getMessage()]);
         }
     }
+
+    public function login(): void
+{
+    header('Content-Type: application/json; charset=utf-8');
+
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    try {
+        $user = $this->auth->login(
+            $data['email'] ?? '',
+            $data['password'] ?? ''
+        );
+
+        session_regenerate_id(true);
+        $_SESSION['user'] = $user;
+
+        echo json_encode([
+            'message' => 'Connecté',
+            'user' => $user
+        ], JSON_UNESCAPED_UNICODE);
+
+    } catch (Throwable $e) {
+        http_response_code(400);
+        echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
+    }
+}
+
+    public function logout(): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $_SESSION = [];
+
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params["path"], $params["domain"],
+                $params["secure"], $params["httponly"]
+            );
+        }
+
+        session_destroy();
+
+        echo json_encode(['message' => 'Déconnecté'], JSON_UNESCAPED_UNICODE);
+    }
 }
