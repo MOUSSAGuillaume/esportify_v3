@@ -12,6 +12,8 @@ use App\Repository\UserRepository;
 use App\Service\AuthService;
 use App\Middleware\AuthMiddleware;
 use App\Security\Csrf;
+use App\Controller\EventController;
+use App\Repository\EventRepository;
 
 require __DIR__ . '/../vendor/autoload.php';
 
@@ -68,4 +70,16 @@ if ($path === '/csrf' && $method === 'GET') {
     exit;
 }
 
+if ($path === '/events' && $method === 'GET') {
+    $controller = new EventController(new EventRepository($pdo));
+    $controller->list();
+    exit;
+}
+
+if ($path === '/events' && $method === 'POST') {
+    \App\Middleware\AuthMiddleware::requireRole(['ORGANIZER']);
+    $controller = new EventController(new EventRepository($pdo));
+    $controller->create();
+    exit;
+}
 echo json_encode(['message' => 'API Esportify']);
