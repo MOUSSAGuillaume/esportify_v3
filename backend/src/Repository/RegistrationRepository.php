@@ -66,4 +66,17 @@ final class RegistrationRepository
         $stmt->execute(['event_id' => $eventId, 'user_id' => $userId]);
     }
 
+    public function cancel(int $eventId, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE registrations
+            SET status = 'CANCELLED'
+            WHERE event_id = :event_id AND user_id = :user_id AND status = 'ACTIVE'
+            LIMIT 1
+        ");
+        $stmt->execute(['event_id' => $eventId, 'user_id' => $userId]);
+
+        return $stmt->rowCount() === 1;
+    }
+
 }

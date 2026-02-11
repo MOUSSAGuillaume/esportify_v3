@@ -160,5 +160,18 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse
     exit;
 }
 
+if ($method === 'POST' && preg_match('#^/events/(\d+)/unregister$#', $path, $m)) {
+    AuthMiddleware::requireRole(['PLAYER']);
+
+    $eventId = (int)$m[1];
+
+    $controller = new EventRegistrationController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->unregister($eventId);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);

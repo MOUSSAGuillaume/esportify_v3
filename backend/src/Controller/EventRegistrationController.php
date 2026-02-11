@@ -99,4 +99,31 @@ final class EventRegistrationController
         echo json_encode(['message' => 'Joueur refusé'], JSON_UNESCAPED_UNICODE);
     }
 
+    public function unregister(int $eventId): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        // CSRF
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        $csrf = is_string($csrf) ? trim($csrf, " \t\n\r\0\x0B\"'") : null;
+
+        if (!Csrf::validate($csrf)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF invalide'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $userId = (int)($_SESSION['user']['id'] ?? 0);
+
+        $ok = $this->regs->cancel($eventId, $userId);
+        if (!$ok) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Aucune inscription active trouvée'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        echo json_encode(['message' => 'Désinscription confirmée'], JSON_UNESCAPED_UNICODE);
+    }
+
+
 }
