@@ -12,15 +12,18 @@ session_start();
 use App\Controller\AuthController;
 use App\Controller\AdminEventController;
 use App\Controller\EventController;
+use App\Controller\EventRegistrationController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
+use App\Repository\RegistrationRepository;
 
 use App\Service\AuthService;
 
 use App\Middleware\AuthMiddleware;
 
 use App\Security\Csrf;
+
 
 
 $pdo = new PDO(
@@ -116,5 +119,18 @@ if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/(validate|reject)$#'
         exit;
     }
 }
+if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
+    AuthMiddleware::requireRole(['PLAYER']);
+
+    $eventId = (int)$m[1];
+
+    $controller = new EventRegistrationController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->register($eventId);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);
