@@ -88,4 +88,16 @@ final class EventRepository
 
         return $stmt->rowCount() === 1;
     }
+    public function findValidatedById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id, max_players
+            FROM events
+            WHERE id = :id AND status = 'VALIDATED'
+            LIMIT 1
+        ");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
 }

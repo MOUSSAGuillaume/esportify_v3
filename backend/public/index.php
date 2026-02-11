@@ -119,6 +119,7 @@ if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/(validate|reject)$#'
         exit;
     }
 }
+
 if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
     AuthMiddleware::requireRole(['PLAYER']);
 
@@ -129,6 +130,19 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
         new RegistrationRepository($pdo)
     );
     $controller->register($eventId);
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+
+    $eventId = (int)$m[1];
+
+    $controller = new EventRegistrationController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->list($eventId);
     exit;
 }
 
