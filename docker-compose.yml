@@ -10,6 +10,8 @@ services:
       - php
 
   php:
+    env_file:
+      - .env
     build:
       context: .
       dockerfile: docker/php/Dockerfile
@@ -39,6 +41,7 @@ services:
     environment:
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_INITDB_DATABASE: esportify_chat
     volumes:
       - mongo_data:/data/db
 

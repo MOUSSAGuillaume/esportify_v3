@@ -5,5 +5,7 @@
       "App\\": "src/"
     }
   },
-  "require": {}
+  "require": {
+    "mongodb/mongodb": "^2.2"
+  }
 }
