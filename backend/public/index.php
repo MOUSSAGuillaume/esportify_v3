@@ -146,5 +146,19 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m
     exit;
 }
 
+if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+
+    $eventId = (int)$m[1];
+    $userId  = (int)$m[2];
+
+    $controller = new EventRegistrationController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->refuse($eventId, $userId);
+    exit;
+}
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);

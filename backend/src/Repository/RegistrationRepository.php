@@ -38,6 +38,7 @@ final class RegistrationRepository
         ");
         $stmt->execute(['event_id' => $eventId, 'user_id' => $userId]);
     }
+
     public function listByEvent(int $eventId): array
     {
         $stmt = $this->pdo->prepare("
@@ -53,4 +54,16 @@ final class RegistrationRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function refuse(int $eventId, int $userId): void
+    {
+        // si une ligne existe -> update, sinon insert
+        $stmt = $this->pdo->prepare("
+            INSERT INTO registrations (event_id, user_id, status)
+            VALUES (:event_id, :user_id, 'REFUSED')
+            ON DUPLICATE KEY UPDATE status = 'REFUSED'
+        ");
+        $stmt->execute(['event_id' => $eventId, 'user_id' => $userId]);
+    }
+
 }

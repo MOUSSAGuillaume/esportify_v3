@@ -63,6 +63,7 @@ final class EventRegistrationController
             echo json_encode(['error' => 'Déjà inscrit'], JSON_UNESCAPED_UNICODE);
         }
     }
+
     public function list(int $eventId): void
     {
         header('Content-Type: application/json; charset=utf-8');
@@ -70,4 +71,32 @@ final class EventRegistrationController
         $rows = $this->regs->listByEvent($eventId);
         echo json_encode(['registrations' => $rows], JSON_UNESCAPED_UNICODE);
     }
+
+    public function refuse(int $eventId, int $userId): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        // CSRF
+        $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
+        $csrf = is_string($csrf) ? trim($csrf, " \t\n\r\0\x0B\"'") : null;
+
+        if (!Csrf::validate($csrf)) {
+            http_response_code(403);
+            echo json_encode(['error' => 'CSRF invalide'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        // Optionnel: empêcher de se refuser soi-même
+        $me = (int)($_SESSION['user']['id'] ?? 0);
+        if ($me === $userId) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Action invalide'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $this->regs->refuse($eventId, $userId);
+
+        echo json_encode(['message' => 'Joueur refusé'], JSON_UNESCAPED_UNICODE);
+    }
+
 }
