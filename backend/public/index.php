@@ -1,5 +1,7 @@
 <?php
 declare(strict_types=1);
+require __DIR__ . '/../vendor/autoload.php';
+
 ini_set('session.use_strict_mode', '1');
 ini_set('session.cookie_httponly', '1');
 ini_set('session.cookie_samesite', 'Lax');
@@ -8,14 +10,18 @@ ini_set('session.cookie_secure', '0'); // local http
 session_start();
 
 use App\Controller\AuthController;
-use App\Repository\UserRepository;
-use App\Service\AuthService;
-use App\Middleware\AuthMiddleware;
-use App\Security\Csrf;
+use App\Controller\AdminEventController;
 use App\Controller\EventController;
+
+use App\Repository\UserRepository;
 use App\Repository\EventRepository;
 
-require __DIR__ . '/../vendor/autoload.php';
+use App\Service\AuthService;
+
+use App\Middleware\AuthMiddleware;
+
+use App\Security\Csrf;
+
 
 $pdo = new PDO(
     "mysql:host=mysql;dbname=esportify;charset=utf8mb4",
@@ -82,4 +88,33 @@ if ($path === '/events' && $method === 'POST') {
     $controller->create();
     exit;
 }
-echo json_encode(['message' => 'API Esportify']);
+
+// ADMIN: list events by status
+if ($path === '/admin/events' && $method === 'GET') {
+    \App\Middleware\AuthMiddleware::requireRole(['ADMIN']);
+    $controller = new AdminEventController(new EventRepository($pdo));
+    $controller->list();
+    exit;
+}
+
+// ADMIN: validate/reject with dynamic path: /admin/events/{id}/validate|reject
+if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/(validate|reject)$#', $path, $m)) {
+    \App\Middleware\AuthMiddleware::requireRole(['ADMIN']);
+
+    $id = (int)$m[1];
+    $action = $m[2];
+
+    $controller = new AdminEventController(new EventRepository($pdo));
+
+    if ($action === 'validate') {
+        $controller->validate($id);
+        exit;
+    }
+
+    if ($action === 'reject') {
+        $controller->reject($id);
+        exit;
+    }
+}
+header('Content-Type: application/json; charset=utf-8');
+echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);

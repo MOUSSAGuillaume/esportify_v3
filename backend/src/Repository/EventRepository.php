@@ -48,4 +48,44 @@ final class EventRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function findByStatus(string $status): array
+    {
+        $allowed = ['PENDING','VALIDATED','REJECTED','SUSPENDED'];
+        if (!in_array($status, $allowed, true)) {
+            $status = 'PENDING';
+        }
+
+        $stmt = $this->pdo->prepare("
+            SELECT id, organizer_id, title, description, start_at, end_at, max_players, status, created_at
+            FROM events
+            WHERE status = :status
+            ORDER BY created_at DESC
+            LIMIT 200
+        ");
+        $stmt->execute(['status' => $status]);
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+    public function updateStatus(int $eventId, string $status): bool
+    {
+        $allowed = ['PENDING','VALIDATED','REJECTED','SUSPENDED'];
+        if (!in_array($status, $allowed, true)) {
+            return false;
+        }
+
+        $stmt = $this->pdo->prepare("
+            UPDATE events
+            SET status = :status
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $stmt->execute([
+            'status' => $status,
+            'id' => $eventId,
+        ]);
+
+        return $stmt->rowCount() === 1;
+    }
 }
