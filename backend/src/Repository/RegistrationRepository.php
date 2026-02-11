@@ -79,4 +79,14 @@ final class RegistrationRepository
         return $stmt->rowCount() === 1;
     }
 
+    public function isActive(int $eventId, int $userId): bool
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT 1 FROM registrations
+            WHERE event_id = :event_id AND user_id = :user_id AND status = 'ACTIVE'
+            LIMIT 1
+        ");
+        $stmt->execute(['event_id' => $eventId, 'user_id' => $userId]);
+        return (bool)$stmt->fetchColumn();
+    }
 }

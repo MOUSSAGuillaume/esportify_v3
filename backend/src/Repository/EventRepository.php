@@ -100,4 +100,29 @@ final class EventRepository
         $row = $stmt->fetch(\PDO::FETCH_ASSOC);
         return $row ?: null;
     }
+
+    public function findById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id, organizer_id, start_at, end_at, status, started_at
+            FROM events
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $stmt->execute(['id' => $id]);
+        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
+        return $row ?: null;
+    }
+
+    public function setStartedNow(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE events
+            SET started_at = NOW()
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() === 1;
+    }
 }

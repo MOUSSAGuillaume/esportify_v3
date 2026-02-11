@@ -13,6 +13,7 @@ use App\Controller\AuthController;
 use App\Controller\AdminEventController;
 use App\Controller\EventController;
 use App\Controller\EventRegistrationController;
+use App\Controller\EventLifecycleController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
@@ -172,6 +173,31 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/unregister$#', $path, $m))
     $controller->unregister($eventId);
     exit;
 }
+
+if ($method === 'POST' && preg_match('#^/events/(\d+)/start$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER']);
+    $eventId = (int)$m[1];
+
+    $controller = new EventLifecycleController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->start($eventId);
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/events/(\d+)/join$#', $path, $m)) {
+    AuthMiddleware::requireRole(['PLAYER']);
+    $eventId = (int)$m[1];
+
+    $controller = new EventLifecycleController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
+    );
+    $controller->joinStatus($eventId);
+    exit;
+}
+
 
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);
