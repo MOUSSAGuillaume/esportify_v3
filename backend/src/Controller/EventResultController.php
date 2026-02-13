@@ -30,6 +30,13 @@ final class EventResultController
             return;
         }
 
+        // session
+        if (empty($_SESSION['user'])) {
+            http_response_code(401);
+            echo json_encode(['error' => 'Non authentifié'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         $event = $this->events->findById($eventId);
         if (!$event) {
             http_response_code(404);
@@ -41,6 +48,19 @@ final class EventResultController
         if ($me !== (int)$event['organizer_id']) {
             http_response_code(403);
             echo json_encode(['error' => 'Accès interdit'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        // lifecycle checks
+        if (empty($event['started_at'])) {
+            http_response_code(400);
+            echo json_encode(['error' => 'Événement pas démarré'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà terminé'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
@@ -56,7 +76,7 @@ final class EventResultController
         foreach ($rows as $r) {
             $userId = (int)($r['user_id'] ?? 0);
             $points = (int)($r['points'] ?? 0);
-            $rank = isset($r['rank_pos']) ? (int)$r['rank_pos'] : null;
+            $rank = array_key_exists('rank_pos', $r) ? (int)$r['rank_pos'] : null;
 
             // sécurité: seulement players inscrits ACTIVE
             if ($userId <= 0 || !$this->regs->isActive($eventId, $userId)) {

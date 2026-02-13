@@ -104,7 +104,7 @@ final class EventRepository
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, organizer_id, start_at, end_at, status, started_at
+            SELECT id, organizer_id, start_at, end_at, status, started_at, finished_at
             FROM events
             WHERE id = :id
             LIMIT 1
@@ -119,7 +119,7 @@ final class EventRepository
         $stmt = $this->pdo->prepare("
             UPDATE events
             SET started_at = NOW()
-            WHERE id = :id
+            WHERE id = :id AND status = 'VALIDATED'
             LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
@@ -131,7 +131,7 @@ final class EventRepository
         $stmt = $this->pdo->prepare("
             UPDATE events
             SET finished_at = NOW()
-            WHERE id = :id
+            WHERE id = :id AND status = 'VALIDATED'
             LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
