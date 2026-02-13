@@ -37,6 +37,17 @@ final class EventRegistrationController
             echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
             return;
         }
+        // cannot register if started or finished
+        if (!empty($event['started_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà démarré'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
 
         // refused => cannot re-register
         if ($this->regs->isRefused($eventId, $userId)) {
@@ -114,6 +125,24 @@ final class EventRegistrationController
         }
 
         $userId = (int)($_SESSION['user']['id'] ?? 0);
+
+        $event = $this->events->findById($eventId);
+        if (!$event) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (!empty($event['started_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà démarré'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
 
         $ok = $this->regs->cancel($eventId, $userId);
         if (!$ok) {

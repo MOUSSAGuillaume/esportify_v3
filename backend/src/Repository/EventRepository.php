@@ -91,7 +91,7 @@ final class EventRepository
     public function findValidatedById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, max_players
+            SELECT id, max_players, start_at, finished_at
             FROM events
             WHERE id = :id AND status = 'VALIDATED'
             LIMIT 1
