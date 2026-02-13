@@ -40,4 +40,25 @@ final class ResultRepository
         $stmt->execute(['event_id' => $eventId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function myResults(int $userId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                er.event_id,
+                er.points,
+                er.rank_pos,
+                e.title,
+                e.start_at,
+                e.end_at,
+                e.finished_at
+            FROM event_results er
+            JOIN events e ON e.id = er.event_id
+            WHERE er.user_id = :user_id
+            ORDER BY e.finished_at DESC, e.start_at DESC
+            LIMIT 200
+        ");
+        $stmt->execute(['user_id' => $userId]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }

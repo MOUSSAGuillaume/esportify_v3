@@ -15,6 +15,7 @@ use App\Controller\EventController;
 use App\Controller\EventRegistrationController;
 use App\Controller\EventLifecycleController;
 use App\Controller\EventResultController;
+use App\Controller\MeController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
@@ -226,6 +227,13 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/standings$#', $path, $m)) {
     exit;
 }
 
+if ($path === '/me/results' && $method === 'GET') {
+    AuthMiddleware::requireLogin();
+
+    $controller = new MeController(new ResultRepository($pdo));
+    $controller->results();
+    exit;
+}
 
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);
