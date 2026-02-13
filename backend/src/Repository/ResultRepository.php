@@ -61,4 +61,41 @@ final class ResultRepository
         $stmt->execute(['user_id' => $userId]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+public function byUser(int $userId): array
+{
+    $stmt = $this->pdo->prepare("
+        SELECT
+            er.event_id,
+            er.points,
+            er.rank_pos,
+            er.created_at
+        FROM event_results er
+        WHERE er.user_id = :uid
+        ORDER BY er.created_at DESC
+        LIMIT 200
+    ");
+    $stmt->execute(['uid' => $userId]);
+    return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+}
+
+    public function leaderboard(int $limit = 50): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                u.id AS user_id,
+                u.pseudo,
+                SUM(er.points) AS total_points,
+                COUNT(DISTINCT er.event_id) AS events_played,
+                MIN(COALESCE(er.rank_pos, 999999)) AS best_rank
+            FROM event_results er
+            JOIN users u ON u.id = er.user_id
+            GROUP BY u.id, u.pseudo
+            ORDER BY total_points DESC, best_rank ASC, u.id ASC
+            LIMIT :lim
+        ");
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
 }
