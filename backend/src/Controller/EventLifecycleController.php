@@ -48,6 +48,27 @@ final class EventLifecycleController
             return;
         }
 
+        // cannot start if already finished
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement déjà terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        // if already started, keep behavior but return 409 (cleaner)
+        if (!empty($event['started_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Déjà démarré'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        // require at least 1 ACTIVE registration
+        if ($this->regs->countActive($eventId) < 1) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Aucun joueur inscrit'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         // time rule: allowed from start_at - 30 min
         $startAt = new \DateTimeImmutable((string)$event['start_at']);
         $now = new \DateTimeImmutable('now');
@@ -59,12 +80,13 @@ final class EventLifecycleController
             return;
         }
 
-        if (!empty($event['started_at'])) {
-            echo json_encode(['message' => 'Déjà démarré'], JSON_UNESCAPED_UNICODE);
+        $ok = $this->events->setStartedNow($eventId);
+        if (!$ok) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Start impossible'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
-        $this->events->setStartedNow($eventId);
         echo json_encode(['message' => 'Événement démarré'], JSON_UNESCAPED_UNICODE);
     }
 
@@ -73,12 +95,19 @@ final class EventLifecycleController
         header('Content-Type: application/json; charset=utf-8');
 
         $event = $this->events->findById($eventId);
+        // event must be VALIDATED
         if (!$event || ($event['status'] ?? '') !== 'VALIDATED') {
             http_response_code(404);
             echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['canJoin' => false, 'reason' => 'Terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+        
         $me = (int)($_SESSION['user']['id'] ?? 0);
 
         // must be registered ACTIVE

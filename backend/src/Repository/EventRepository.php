@@ -119,8 +119,11 @@ final class EventRepository
         $stmt = $this->pdo->prepare("
             UPDATE events
             SET started_at = NOW()
-            WHERE id = :id AND status = 'VALIDATED'
-            LIMIT 1
+            WHERE id = :id
+                AND status = 'VALIDATED'
+                AND started_at IS NULL
+                AND finished_at IS NULL
+                LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() === 1;
