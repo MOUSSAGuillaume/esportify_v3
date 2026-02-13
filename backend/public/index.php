@@ -17,11 +17,14 @@ use App\Controller\EventLifecycleController;
 use App\Controller\EventResultController;
 use App\Controller\MeController;
 use App\Controller\ResultController;
+use App\Controller\ChatController;
+
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
 use App\Repository\RegistrationRepository;
 use App\Repository\ResultRepository;
+use App\Repository\ChatRepository;
 
 use App\Service\AuthService;
 
@@ -29,7 +32,7 @@ use App\Middleware\AuthMiddleware;
 
 use App\Security\Csrf;
 
-
+use App\Service\MongoClientFactory;
 
 $pdo = new PDO(
     "mysql:host=mysql;dbname=esportify;charset=utf8mb4",
@@ -253,6 +256,34 @@ if ($path === '/leaderboard' && $method === 'GET') {
     exit;
 }
 
+// CHAT: list messages
+if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
+    AuthMiddleware::requireRole(['PLAYER','ORGANIZER','ADMIN']);
 
+    $eventId = (int)$m[1];
+
+    $controller = new ChatController(
+        new ChatRepository(MongoClientFactory::db()),
+        new RegistrationRepository($pdo),
+        new EventRepository($pdo)
+    );
+    $controller->list($eventId);
+    exit;
+}
+
+// CHAT: post message
+if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
+    AuthMiddleware::requireRole(['PLAYER']);
+
+    $eventId = (int)$m[1];
+
+    $controller = new ChatController(
+        new ChatRepository(MongoClientFactory::db()),
+        new RegistrationRepository($pdo),
+        new EventRepository($pdo),
+    );
+    $controller->post($eventId);
+    exit;
+}
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);
