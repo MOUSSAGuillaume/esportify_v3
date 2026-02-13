@@ -125,4 +125,17 @@ final class EventRepository
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() === 1;
     }
+
+    public function setFinishedNow(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE events
+            SET finished_at = NOW()
+            WHERE id = :id
+            LIMIT 1
+        ");
+        $stmt->execute(['id' => $id]);
+        return $stmt->rowCount() === 1;
+    }
+
 }

@@ -14,10 +14,12 @@ use App\Controller\AdminEventController;
 use App\Controller\EventController;
 use App\Controller\EventRegistrationController;
 use App\Controller\EventLifecycleController;
+use App\Controller\EventResultController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
 use App\Repository\RegistrationRepository;
+use App\Repository\ResultRepository;
 
 use App\Service\AuthService;
 
@@ -195,6 +197,32 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/join$#', $path, $m)) {
         new RegistrationRepository($pdo)
     );
     $controller->joinStatus($eventId);
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/events/(\d+)/finish$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER']);
+
+    $eventId = (int)$m[1];
+
+    $controller = new EventResultController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo),
+        new ResultRepository($pdo)
+    );
+    $controller->finish($eventId);
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/events/(\d+)/standings$#', $path, $m)) {
+    $eventId = (int)$m[1];
+
+    $controller = new EventResultController(
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo),
+        new ResultRepository($pdo)
+    );
+    $controller->standings($eventId);
     exit;
 }
 
