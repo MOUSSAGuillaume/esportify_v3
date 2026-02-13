@@ -53,7 +53,7 @@ final class EventResultController
 
         // lifecycle checks
         if (empty($event['started_at'])) {
-            http_response_code(400);
+            http_response_code(409);
             echo json_encode(['error' => 'Événement pas démarré'], JSON_UNESCAPED_UNICODE);
             return;
         }
@@ -89,8 +89,9 @@ final class EventResultController
         }
 
         $this->events->setFinishedNow($eventId);
-
+        
         echo json_encode(['message' => 'Événement terminé'], JSON_UNESCAPED_UNICODE);
+
     }
 
     // GET /events/{id}/standings
