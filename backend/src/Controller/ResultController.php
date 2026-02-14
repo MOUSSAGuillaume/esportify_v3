@@ -23,9 +23,11 @@ final class ResultController
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        $limit = isset($_GET['limit']) ? max(1, min(200, (int)$_GET['limit'])) : 50;
+        $limit  = isset($_GET['limit']) ? (int)$_GET['limit'] : 50;
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $q      = isset($_GET['q']) ? (string)$_GET['q'] : null;
 
-        $rows = $this->results->leaderboard($limit);
+        $rows = $this->results->leaderboard($limit, $offset, $q);
         echo json_encode(['leaderboard' => $rows], JSON_UNESCAPED_UNICODE);
     }
 }
