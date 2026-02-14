@@ -5,6 +5,7 @@ namespace App\Repository;
 
 use MongoDB\Database;
 use MongoDB\BSON\UTCDateTime;
+use MongoDB\BSON\ObjectId;
 
 final class ChatRepository
 {
@@ -26,16 +27,23 @@ final class ChatRepository
         ]);
     }
 
-    public function listMessages(int $eventId, int $limit = 100): array
+    public function listMessages(int $eventId, int $limit = 100, ?string $afterId = null): array
     {
+        $filter = ['eventId' => $eventId];
+
+        if (is_string($afterId) && preg_match('/^[a-f0-9]{24}$/i', $afterId)) {
+            $filter['_id'] = ['$gt' => new ObjectId($afterId)];
+        }
+
         $cursor = $this->col()->find(
-            ['eventId' => $eventId],
+            $filter,
             ['sort' => ['createdAt' => 1], 'limit' => $limit]
         );
 
         $out = [];
         foreach ($cursor as $doc) {
             $out[] = [
+                'id' => (string)($doc['_id'] ?? ''),
                 'userId' => (int)($doc['userId'] ?? 0),
                 'pseudo' => (string)($doc['pseudo'] ?? ''),
                 'message' => (string)($doc['message'] ?? ''),

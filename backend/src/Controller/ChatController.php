@@ -60,7 +60,8 @@ final class ChatController
         if ($limit < 1) $limit = 1;
         if ($limit > 200) $limit = 200;
 
-        $messages = $this->chat->listMessages($eventId, $limit);
+        $after = isset($_GET['after']) ? (string)$_GET['after'] : null;
+        $messages = $this->chat->listMessages($eventId, $limit, $after);
         echo json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
     }
 
@@ -114,6 +115,22 @@ final class ChatController
             return;
         }
 
+        // anti-spam: 1 message / seconde / event (par session)
+        if (!isset($_SESSION['chat_last_at'])) {
+            $_SESSION['chat_last_at'] = [];
+        }
+
+        $last = $_SESSION['chat_last_at'][$eventId] ?? 0;
+        $now  = time();
+
+        if (is_int($last) && ($now - $last) < 1) {
+            http_response_code(429);
+            echo json_encode(['error' => 'Trop de messages (attends 1s)'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $_SESSION['chat_last_at'][$eventId] = $now;
+        
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
         $msg = trim((string)($data['message'] ?? ''));
 
