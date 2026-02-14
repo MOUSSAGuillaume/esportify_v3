@@ -273,7 +273,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
 
 // CHAT: post message
 if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
 
     $eventId = (int)$m[1];
 
