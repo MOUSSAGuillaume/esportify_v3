@@ -231,14 +231,6 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/standings$#', $path, $m)) {
     exit;
 }
 
-if ($path === '/me/results' && $method === 'GET') {
-    AuthMiddleware::requireLogin();
-
-    $controller = new MeController(new ResultRepository($pdo));
-    $controller->results();
-    exit;
-}
-
 // GET /me/results
 if ($path === '/me/results' && $method === 'GET') {
     AuthMiddleware::requireLogin();
@@ -264,8 +256,8 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
 
     $controller = new ChatController(
         new ChatRepository(MongoClientFactory::db()),
-        new RegistrationRepository($pdo),
-        new EventRepository($pdo)
+        new EventRepository($pdo),
+        new RegistrationRepository($pdo)
     );
     $controller->list($eventId);
     exit;
@@ -279,8 +271,8 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
 
     $controller = new ChatController(
         new ChatRepository(MongoClientFactory::db()),
-        new RegistrationRepository($pdo),
         new EventRepository($pdo),
+        new RegistrationRepository($pdo)
     );
     $controller->post($eventId);
     exit;

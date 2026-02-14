@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace App\Controller;
 
 use App\Repository\ChatRepository;
+use App\Repository\EventRepository;
 use App\Repository\RegistrationRepository;
 use App\Security\Csrf;
 
@@ -11,6 +12,7 @@ final class ChatController
 {
     public function __construct(
         private ChatRepository $chat,
+        private EventRepository $events,
         private RegistrationRepository $regs
     ) {}
 
@@ -25,6 +27,25 @@ final class ChatController
             return;
         }
 
+        $event = $this->events->findById($eventId);
+        if (!$event) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (empty($event['started_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement pas encore démarré'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
         $role = (string)($_SESSION['user']['role'] ?? '');
         $meId = (int)($_SESSION['user']['id'] ?? 0);
 
@@ -35,7 +56,11 @@ final class ChatController
             return;
         }
 
-        $messages = $this->chat->listMessages($eventId, 100);
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
+        if ($limit < 1) $limit = 1;
+        if ($limit > 200) $limit = 200;
+
+        $messages = $this->chat->listMessages($eventId, $limit);
         echo json_encode(['messages' => $messages], JSON_UNESCAPED_UNICODE);
     }
 
@@ -57,6 +82,25 @@ final class ChatController
         if (!Csrf::validate($csrf)) {
             http_response_code(403);
             echo json_encode(['error' => 'CSRF invalide'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $event = $this->events->findById($eventId);
+        if (!$event) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (!empty($event['finished_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement terminé'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        if (empty($event['started_at'])) {
+            http_response_code(409);
+            echo json_encode(['error' => 'Événement pas encore démarré'], JSON_UNESCAPED_UNICODE);
             return;
         }
 
