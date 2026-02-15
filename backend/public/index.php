@@ -241,6 +241,15 @@ if ($path === '/me/results' && $method === 'GET') {
     exit;
 }
 
+// GET /me/stats
+if ($path === '/me/stats' && $method === 'GET') {
+    AuthMiddleware::requireLogin();
+
+    $controller = new MeController(new ResultRepository($pdo));
+    $controller->stats();
+    exit;
+}
+
 // GET /leaderboard
 if ($path === '/leaderboard' && $method === 'GET') {
     $controller = new ResultController(new ResultRepository($pdo));
@@ -277,5 +286,6 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
     $controller->post($eventId);
     exit;
 }
+
 header('Content-Type: application/json; charset=utf-8');
 echo json_encode(['message' => 'API Esportify'], JSON_UNESCAPED_UNICODE);

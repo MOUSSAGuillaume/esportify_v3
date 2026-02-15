@@ -125,4 +125,30 @@ final class ResultRepository
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function statsByUser(int $userId): array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                COALESCE(SUM(er.points), 0) AS total_points,
+                COUNT(DISTINCT er.event_id) AS events_played,
+                MIN(COALESCE(er.rank_pos, 999999)) AS best_rank,
+                SUM(CASE WHEN er.rank_pos = 1 THEN 1 ELSE 0 END) AS wins
+            FROM event_results er
+            WHERE er.user_id = :uid
+        ");
+        $stmt->execute(['uid' => $userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: [];
+
+        $events = (int)($row['events_played'] ?? 0);
+        $wins = (int)($row['wins'] ?? 0);
+
+        return [
+            'total_points'  => (int)($row['total_points'] ?? 0),
+            'events_played' => $events,
+            'best_rank'     => ((int)($row['best_rank'] ?? 999999) === 999999) ? null : (int)$row['best_rank'],
+            'wins'          => $wins,
+            'win_rate'      => $events > 0 ? round(($wins / $events) * 100, 2) : 0.0,
+        ];
+    }
 }
