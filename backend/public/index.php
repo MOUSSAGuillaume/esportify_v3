@@ -18,7 +18,7 @@ use App\Controller\EventResultController;
 use App\Controller\MeController;
 use App\Controller\ResultController;
 use App\Controller\ChatController;
-
+use App\Controller\UserController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
@@ -284,6 +284,24 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         new RegistrationRepository($pdo)
     );
     $controller->post($eventId);
+    exit;
+}
+
+// GET /users/{id}/stats
+if ($method === 'GET' && preg_match('#^/users/(\d+)/stats$#', $path, $m)) {
+    $uid = (int)$m[1];
+
+    $controller = new UserController(new ResultRepository($pdo));
+    $controller->stats($uid);
+    exit;
+}
+
+// GET /users/{id}/results
+if ($method === 'GET' && preg_match('#^/users/(\d+)/results$#', $path, $m)) {
+    $uid = (int)$m[1];
+
+    $controller = new UserController(new ResultRepository($pdo));
+    $controller->results($uid);
     exit;
 }
 
