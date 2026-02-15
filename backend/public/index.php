@@ -19,6 +19,7 @@ use App\Controller\MeController;
 use App\Controller\ResultController;
 use App\Controller\ChatController;
 use App\Controller\UserController;
+use App\Controller\HealthController;
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
@@ -271,6 +272,12 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         new EventRepository($pdo),
         new RegistrationRepository($pdo)
     ))->post($eventId);
+    exit;
+}
+
+/*HEALTH*/
+if ($path === '/health' && $method === 'GET') {
+    (new HealthController($pdo, MongoClientFactory::db()))->check();
     exit;
 }
 
