@@ -5,7 +5,6 @@ namespace App\Repository;
 
 use MongoDB\Database;
 use MongoDB\BSON\UTCDateTime;
-use MongoDB\BSON\ObjectId;
 
 final class ChatRepository
 {
@@ -27,13 +26,23 @@ final class ChatRepository
         ]);
     }
 
-    public function listMessages(int $eventId, int $limit = 100, ?string $afterId = null): array
+    public function listMessages(int $eventId, int $limit = 100, ?string $after = null): array
     {
         $filter = ['eventId' => $eventId];
 
-        if (is_string($afterId) && preg_match('/^[a-f0-9]{24}$/i', $afterId)) {
-            $filter['_id'] = ['$gt' => new ObjectId($afterId)];
+        if (is_string($after) && trim($after) !== '') {
+            try {
+                $dt = new \DateTimeImmutable($after);
+                // UTCDateTime attend des millisecondes
+                $ms = ((int)$dt->format('U')) * 1000;
+                $filter['createdAt'] = ['$gt' => new UTCDateTime($ms)];
+            } catch (\Exception $e) {
+                // after invalide => on ignore et on renvoie les derniers messages selon le tri
+            }
         }
+
+        if ($limit < 1) $limit = 1;
+        if ($limit > 200) $limit = 200;
 
         $cursor = $this->col()->find(
             $filter,
@@ -43,13 +52,15 @@ final class ChatRepository
         $out = [];
         foreach ($cursor as $doc) {
             $out[] = [
-                'id' => (string)($doc['_id'] ?? ''),
                 'userId' => (int)($doc['userId'] ?? 0),
                 'pseudo' => (string)($doc['pseudo'] ?? ''),
                 'message' => (string)($doc['message'] ?? ''),
-                'createdAt' => isset($doc['createdAt']) ? $doc['createdAt']->toDateTime()->format('c') : null,
+                'createdAt' => isset($doc['createdAt'])
+                    ? $doc['createdAt']->toDateTime()->format('c')
+                    : null,
             ];
         }
+
         return $out;
     }
 }
