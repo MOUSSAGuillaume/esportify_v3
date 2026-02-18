@@ -52,7 +52,8 @@ if ($path === '/csrf' && $method === 'GET') {
 
 // HEALTH
 if ($path === '/health' && $method === 'GET') {
-    (new HealthController($pdo, MongoClientFactory::db()))->check(); exit;
+    (new \App\Controller\HealthController($pdo, MongoClientFactory::db()))->check();
+    exit;
 }
 
 // ADMIN
@@ -216,7 +217,9 @@ if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $
         exit;
     }
 
-    $controller = new UserController(new ResultRepository($pdo));
+    $controller = new UserController(
+    new ResultRepository($pdo),
+    new UserRepository($pdo));
     if ($action === 'stats')   { $controller->stats($uid); exit; }
     if ($action === 'results') { $controller->results($uid); exit; }
 }

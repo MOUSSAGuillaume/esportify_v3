@@ -61,10 +61,15 @@ final class EventController
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        $sort = $_GET['sort'] ?? null;   // date|players|organizer
-        $order = $_GET['order'] ?? null; // asc|desc
+        $q     = isset($_GET['q']) ? (string)$_GET['q'] : null;
+        $from  = isset($_GET['from']) ? (string)$_GET['from'] : null;
+        $to    = isset($_GET['to']) ? (string)$_GET['to'] : null;
+        $sort  = isset($_GET['sort']) ? (string)$_GET['sort'] : null;
+        $order = isset($_GET['order']) ? (string)$_GET['order'] : null;
+        $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 200;
 
-        $events = $this->events->listValidated($sort, $order);
+        $events = $this->events->listValidatedFiltered($q, $from, $to, $sort, $order, $limit);
+
         echo json_encode(['events' => $events], JSON_UNESCAPED_UNICODE);
     }
 }

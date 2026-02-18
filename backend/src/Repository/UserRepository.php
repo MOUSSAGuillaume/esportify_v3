@@ -32,4 +32,11 @@ final class UserRepository
             'pseudo' => $pseudo,
         ]);
     }
+
+    public function exists(int $id): bool
+    {
+        $stmt = $this->pdo->prepare("SELECT 1 FROM users WHERE id = :id LIMIT 1");
+        $stmt->execute(['id' => $id]);
+        return (bool)$stmt->fetchColumn();
+    }
 }

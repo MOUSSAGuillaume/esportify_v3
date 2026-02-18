@@ -13,35 +13,36 @@ final class HealthController
         private Database $mongoDb
     ) {}
 
+    // GET /health
     public function check(): void
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        $mysqlOk = false;
-        $mongoOk = false;
+        $out = [
+            'ok' => true,
+            'mysql' => ['ok' => true],
+            'mongo' => ['ok' => true],
+            'time' => gmdate('c'),
+        ];
 
+        // MySQL
         try {
             $this->pdo->query('SELECT 1')->fetchColumn();
-            $mysqlOk = true;
         } catch (\Throwable $e) {
-            $mysqlOk = false;
+            $out['ok'] = false;
+            $out['mysql'] = ['ok' => false, 'error' => 'mysql_down'];
         }
 
+        // Mongo
         try {
-            // ping rapide
+            // ping admin
             $this->mongoDb->command(['ping' => 1])->toArray();
-            $mongoOk = true;
         } catch (\Throwable $e) {
-            $mongoOk = false;
+            $out['ok'] = false;
+            $out['mongo'] = ['ok' => false, 'error' => 'mongo_down'];
         }
 
-        $ok = $mysqlOk && $mongoOk;
-
-        http_response_code($ok ? 200 : 500);
-        echo json_encode([
-            'ok' => $ok,
-            'mysql' => $mysqlOk,
-            'mongo' => $mongoOk,
-        ], JSON_UNESCAPED_UNICODE);
+        http_response_code($out['ok'] ? 200 : 503);
+        echo json_encode($out, JSON_UNESCAPED_UNICODE);
     }
 }
