@@ -22,6 +22,28 @@ $pdo = new PDO(
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
+// ✅ Erreurs PHP -> JSON (prod friendly)
+set_exception_handler(function (Throwable $e): void {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'error' => 'Erreur serveur',
+        // en TP on peut laisser le message, en prod tu le retires
+        'details' => $e->getMessage(),
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
+set_error_handler(function (int $severity, string $message, string $file, int $line): bool {
+    http_response_code(500);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode([
+        'error' => 'Erreur serveur',
+        'details' => $message . " ($file:$line)",
+    ], JSON_UNESCAPED_UNICODE);
+    exit;
+});
+
 // ✅ Rate limit global (par IP + route)
 // règles:
 // - login/register: 10 req / 60s
