@@ -1,18 +1,40 @@
-# Docker
-.env
-docker-compose.override.yml
-
-# PHP
-vendor/
-*.log
-
 # OS
 .DS_Store
 Thumbs.db
+
 
 # IDE
 .vscode/
 .idea/
 
-# Uploads / storage
-backend/storage/
+
+# ENV
+.env
+.env.local
+.env.*.local
+
+
+# BACKEND - PHP / Composer
+vendor/
+storage/
+*.log
+
+
+# FRONTEND - Node / SCSS
+node_modules/
+frontend/node_modules/
+frontend/assets/vendor/
+
+# fichiers générés
+frontend/assets/css/*.css.map
+
+
+# DOCKER
+docker/mysql/data/
+docker/**/data/
+
+
+# TEST / TEMP
+*.tmp
+*.cache
+coverage/

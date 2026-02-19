@@ -1,0 +1,9 @@
+// 1) tes variables avant bootstrap (optionnel)
+@import "variables";
+
+// 2) bootstrap complet (SCSS)
+@import "../../../node_modules/bootstrap/scss/bootstrap";
+
+// 3) ton style après bootstrap
+@import "layout";
+@import "components";

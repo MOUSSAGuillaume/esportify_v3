@@ -1,0 +1,32 @@
+{
+  "name": "esportify_v3",
+  "version": "1.0.0",
+  "description": "Esportify v3 — Backend (PHP + MySQL + MongoDB)",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev:css": "sass frontend/assets/scss/app.scss frontend/assets/css/app.css --watch",
+    "build:css": "sass frontend/assets/scss/app.scss frontend/assets/css/app.css --style=compressed"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MOUSSAGuillaume/esportify_v3.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/MOUSSAGuillaume/esportify_v3/issues"
+  },
+  "homepage": "https://github.com/MOUSSAGuillaume/esportify_v3#readme",
+  "dependencies": {
+    "bootstrap": "^5.3.8"
+  },
+  "devDependencies": {
+    "sass": "^1.97.3"
+  }
+}
