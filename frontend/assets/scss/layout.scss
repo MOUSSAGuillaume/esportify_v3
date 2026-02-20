@@ -10,6 +10,17 @@
   flex-direction: column;
 }
 
+body.page-wrap {
+  background: $body-bg;
+  color: $body-color;
+}
+
+.card {
+  border-radius: 1rem;
+}
+
+a { text-decoration: none; }
+
 main { flex: 1; }
 
 footer {

@@ -26,8 +26,8 @@ frontend/node_modules/
 frontend/assets/vendor/
 
 # fichiers générés
-frontend/assets/css/*.css.map
-
+frontend/assets/css/app.css.map
+frontend/assets/css/app.css
 
 # DOCKER
 docker/mysql/data/

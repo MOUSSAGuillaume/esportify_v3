@@ -2,7 +2,7 @@
 @import "variables";
 
 // 2) bootstrap complet (SCSS)
-@import "../../../node_modules/bootstrap/scss/bootstrap";
+@import "../vendor/bootstrap/css/bootstrap.min.css";
 
 // 3) ton style après bootstrap
 @import "layout";

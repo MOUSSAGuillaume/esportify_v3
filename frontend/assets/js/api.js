@@ -1,42 +1,27 @@
-import { API_BASE, ROUTES } from "./config.js";
+import { API_BASE_URL } from "./config.js";
 
-let csrfToken = null;
+export async function api(path, { method = "GET", body, csrf = false } = {}) {
+  const headers = { "Content-Type": "application/json" };
 
-export async function ensureCsrf() {
-  if (csrfToken) return csrfToken;
-
-  const res = await fetch(API_BASE + ROUTES.csrf, { credentials: "include" });
-  const data = await res.json();
-  csrfToken = data.csrfToken;
-  return csrfToken;
-}
-
-export async function apiFetch(path, { method = "GET", body = null, headers = {} } = {}) {
-  const opts = {
-    method,
-    credentials: "include",
-    headers: {
-      "Accept": "application/json",
-      ...headers,
-    },
-  };
-
-  if (body !== null) {
-    // CSRF sur toutes les requêtes qui écrivent
-    const token = await ensureCsrf();
-    opts.headers["Content-Type"] = "application/json";
-    opts.headers["X-CSRF-TOKEN"] = token;
-    opts.body = JSON.stringify(body);
+  // CSRF si besoin
+  if (csrf) {
+    const token = localStorage.getItem("csrfToken");
+    if (token) headers["X-CSRF-TOKEN"] = token;
   }
 
-  const res = await fetch(API_BASE + path, opts);
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    method,
+    headers,
+    body: body ? JSON.stringify(body) : undefined,
+    credentials: "include", // IMPORTANT: garde PHPSESSID
+  });
 
-  // essaye de lire json même en erreur
+  const text = await res.text();
   let data = null;
-  try { data = await res.json(); } catch { /* ignore */ }
+  try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
 
   if (!res.ok) {
-    const msg = data?.error || `HTTP ${res.status}`;
+    const msg = data?.error || `Erreur HTTP ${res.status}`;
     const err = new Error(msg);
     err.status = res.status;
     err.data = data;
@@ -44,4 +29,10 @@ export async function apiFetch(path, { method = "GET", body = null, headers = {}
   }
 
   return data;
+}
+
+export async function fetchCsrf() {
+  const data = await api("/csrf");
+  if (data?.csrfToken) localStorage.setItem("csrfToken", data.csrfToken);
+  return data?.csrfToken;
 }
