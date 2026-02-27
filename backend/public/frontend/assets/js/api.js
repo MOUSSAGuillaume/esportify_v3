@@ -1,4 +1,4 @@
-import { API_BASE_URL } from "./config.js";
+import { API_BASE_URL } from "../js/config.js";
 
 export async function api(path, { method = "GET", body, csrf = false } = {}) {
   const headers = { "Content-Type": "application/json" };

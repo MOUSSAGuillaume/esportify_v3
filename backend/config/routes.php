@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 use App\Controller\AuthController;
@@ -12,37 +13,46 @@ use App\Controller\ResultController;
 use App\Controller\ChatController;
 use App\Controller\UserController;
 use App\Controller\HealthController;
+use App\Controller\AdminUserController;
+use App\Controller\AdminMessageController;
+use App\Controller\AdminStatsController;
+
 
 use App\Repository\UserRepository;
 use App\Repository\EventRepository;
 use App\Repository\RegistrationRepository;
 use App\Repository\ResultRepository;
 use App\Repository\ChatRepository;
+use App\Repository\ContactMessageRepository;
 
 use App\Service\AuthService;
 use App\Middleware\AuthMiddleware;
 use App\Security\Csrf;
 use App\Service\MongoClientFactory;
 
-/**
- * Variables disponibles depuis index.php :
- * - $pdo (PDO)
- * - $path (string)
- * - $method (string)
+/*
+ Variables disponibles depuis index.php :
+ - $pdo (PDO)
+ - $path (string)
+ - $method (string)
  */
 
 // AUTH
 if ($path === '/register' && $method === 'POST') {
-    (new AuthController(new AuthService(new UserRepository($pdo))))->register(); exit;
+    (new AuthController(new AuthService(new UserRepository($pdo))))->register();
+    exit;
 }
 if ($path === '/login' && $method === 'POST') {
-    (new AuthController(new AuthService(new UserRepository($pdo))))->login(); exit;
+    (new AuthController(new AuthService(new UserRepository($pdo))))->login();
+    exit;
 }
 if ($path === '/logout' && $method === 'POST') {
-    (new AuthController(new AuthService(new UserRepository($pdo))))->logout(); exit;
+    (new AuthController(new AuthService(new UserRepository($pdo))))->logout();
+    exit;
 }
 if ($path === '/me' && $method === 'GET') {
-    (new AuthController(new AuthService(new UserRepository($pdo))))->me(); exit;
+    (new AuthController(new AuthService(new UserRepository($pdo))))->me();
+    exit;
 }
 if ($path === '/csrf' && $method === 'GET') {
     header('Content-Type: application/json; charset=utf-8');
@@ -66,7 +76,8 @@ if ($path === '/admin/ping' && $method === 'GET') {
 
 if ($path === '/admin/events' && $method === 'GET') {
     AuthMiddleware::requireRole(['ADMIN']);
-    (new AdminEventController(new EventRepository($pdo)))->list(); exit;
+    (new AdminEventController(new EventRepository($pdo)))->list();
+    exit;
 }
 
 if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/(validate|reject)$#', $path, $m)) {
@@ -75,18 +86,26 @@ if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/(validate|reject)$#'
     $action = $m[2];
 
     $controller = new AdminEventController(new EventRepository($pdo));
-    if ($action === 'validate') { $controller->validate($id); exit; }
-    if ($action === 'reject')   { $controller->reject($id); exit; }
+    if ($action === 'validate') {
+        $controller->validate($id);
+        exit;
+    }
+    if ($action === 'reject') {
+        $controller->reject($id);
+        exit;
+    }
 }
 
 // EVENTS
 if ($path === '/events' && $method === 'GET') {
-    (new EventController(new EventRepository($pdo)))->list(); exit;
+    (new EventController(new EventRepository($pdo)))->list();
+    exit;
 }
 
 if ($path === '/events' && $method === 'POST') {
     AuthMiddleware::requireRole(['ORGANIZER']);
-    (new EventController(new EventRepository($pdo)))->create(); exit;
+    (new EventController(new EventRepository($pdo)))->create();
+    exit;
 }
 
 // REGISTRATIONS
@@ -113,7 +132,7 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/unregister$#', $path, $m))
 }
 
 if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m)) {
-    AuthMiddleware::requireRole(['ORGANIZER','ADMIN']);
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     $eventId = (int)$m[1];
 
     (new EventRegistrationController(
@@ -124,7 +143,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m
 }
 
 if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
-    AuthMiddleware::requireRole(['ORGANIZER','ADMIN']);
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     $eventId = (int)$m[1];
     $userId = (int)$m[2];
 
@@ -183,7 +202,8 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/standings$#', $path, $m)) {
 }
 
 if ($path === '/leaderboard' && $method === 'GET') {
-    (new ResultController(new ResultRepository($pdo)))->leaderboard(); exit;
+    (new ResultController(new ResultRepository($pdo)))->leaderboard();
+    exit;
 }
 
 // ME
@@ -200,7 +220,7 @@ if ($path === '/me/stats' && $method === 'GET') {
     exit;
 }
 
-// USERS (ADMIN ou soi-même)
+// USERS (ADMIN)
 if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $m)) {
     AuthMiddleware::requireLogin();
 
@@ -218,15 +238,22 @@ if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $
     }
 
     $controller = new UserController(
-    new ResultRepository($pdo),
-    new UserRepository($pdo));
-    if ($action === 'stats')   { $controller->stats($uid); exit; }
-    if ($action === 'results') { $controller->results($uid); exit; }
+        new ResultRepository($pdo),
+        new UserRepository($pdo)
+    );
+    if ($action === 'stats') {
+        $controller->stats($uid);
+        exit;
+    }
+    if ($action === 'results') {
+        $controller->results($uid);
+        exit;
+    }
 }
 
 // CHAT
 if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER','ORGANIZER','ADMIN']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
     $eventId = (int)$m[1];
 
     (new ChatController(
@@ -238,7 +265,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
 }
 
 if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER','ORGANIZER','ADMIN']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
     $eventId = (int)$m[1];
 
     (new ChatController(
@@ -246,5 +273,61 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         new EventRepository($pdo),
         new RegistrationRepository($pdo)
     ))->post($eventId);
+    exit;
+}
+
+// ADMIN - USERS
+if ($path === '/admin/users' && $method === 'GET') {
+    AuthMiddleware::requireRole(['ADMIN']);
+    (new \App\Controller\AdminUserController(new UserRepository($pdo)))->list();
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/admin/users/(\d+)/role$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    $userId = (int)$m[1];
+    (new \App\Controller\AdminUserController(new UserRepository($pdo)))->updateRole($userId);
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/admin/users/(\d+)/(suspend|unsuspend)$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    $userId = (int)$m[1];
+    $action = $m[2];
+    $ctrl = new \App\Controller\AdminUserController(new UserRepository($pdo));
+    $action === 'suspend' ? $ctrl->suspend($userId) : $ctrl->unsuspend($userId);
+    exit;
+}
+
+// ADMIN - CONTACT MESSAGES
+if ($path === '/admin/messages' && $method === 'GET') {
+    AuthMiddleware::requireRole(['ADMIN']);
+    (new \App\Controller\AdminMessageController(new \App\Repository\ContactMessageRepository($pdo)))->list();
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/admin/messages/(\d+)/read$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    $id = (int)$m[1];
+    (new \App\Controller\AdminMessageController(new \App\Repository\ContactMessageRepository($pdo)))->markRead($id);
+    exit;
+}
+
+// ADMIN - STATS
+if ($path === '/admin/stats' && $method === 'GET') {
+    AuthMiddleware::requireRole(['ADMIN']);
+    (new \App\Controller\AdminStatsController(
+        new UserRepository($pdo),
+        new EventRepository($pdo),
+        new \App\Repository\ContactMessageRepository($pdo)
+    ))->stats();
+    exit;
+}
+
+// (OPTION) ADMIN - EVENTS SUSPEND
+if ($method === 'POST' && preg_match('#^/admin/events/(\d+)/suspend$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    $id = (int)$m[1];
+    (new AdminEventController(new EventRepository($pdo)))->suspend($id);
     exit;
 }

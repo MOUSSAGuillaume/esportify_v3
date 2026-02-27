@@ -9,7 +9,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev:css": "sass frontend/assets/scss/app.scss frontend/assets/css/app.css --watch",
-    "build:css": "sass frontend/assets/scss/app.scss frontend/assets/css/app.css --style=compressed"
+    "build:css": "sass frontend/assets/scss/app.scss frontend/assets/css/app.css --style=compressed",
+    "vendor:bootstrap": "shx mkdir -p frontend/assets/vendor/bootstrap/css frontend/assets/vendor/bootstrap/js && shx cp node_modules/bootstrap/dist/css/bootstrap.min.css frontend/assets/vendor/bootstrap/css/bootstrap.min.css && shx cp node_modules/bootstrap/dist/js/bootstrap.bundle.min.js frontend/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"
+
   },
   "repository": {
     "type": "git",
@@ -27,6 +29,7 @@
     "bootstrap": "^5.3.8"
   },
   "devDependencies": {
-    "sass": "^1.97.3"
+    "sass": "^1.97.3",
+    "shx": "^0.4.0"
   }
 }

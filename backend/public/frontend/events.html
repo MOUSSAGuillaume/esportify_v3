@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Esportify — Événements</title>
+  <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+
+<body class="page-wrap">
+
+  <header id="app-header"></header>
+
+  <main class="container py-4">
+
+    <!-- Hero / titre -->
+    <div class="mb-4">
+      <h1 class="display-6 fw-bold mb-2">Événements</h1>
+      <p class="text-secondary mb-0">Découvrez et participez aux compétitions e-sport</p>
+    </div>
+
+    <!-- Barre filtres -->
+    <div class="card bg-dark text-light border-secondary mb-4">
+      <div class="card-body">
+        <div class="d-flex align-items-center gap-2 mb-3">
+          <span class="fw-semibold">Filtres</span>
+        </div>
+
+        <div class="row g-3 align-items-end">
+          <!-- Recherche -->
+          <div class="col-12 col-lg-4">
+            <label for="searchInput" class="form-label text-secondary small mb-1">Rechercher</label>
+            <div class="input-group">
+              <span class="input-group-text bg-dark text-secondary border-secondary">🔎</span>
+              <input id="searchInput" type="search" class="form-control bg-dark text-light border-secondary"
+                placeholder="Nom d'événement…" autocomplete="off" />
+            </div>
+          </div>
+
+          <!-- Tri date -->
+          <div class="col-12 col-md-6 col-lg-2">
+            <label for="sortSelect" class="form-label text-secondary small mb-1">Trier</label>
+            <select id="sortSelect" class="form-select bg-dark text-light border-secondary">
+              <option value="date_desc">Date (décroissant)</option>
+              <option value="date_asc">Date (croissant)</option>
+            </select>
+          </div>
+
+          <!-- Organisateur -->
+          <div class="col-12 col-md-6 col-lg-3">
+            <label for="organizerSelect" class="form-label text-secondary small mb-1">Organisateur</label>
+            <select id="organizerSelect" class="form-select bg-dark text-light border-secondary">
+              <option value="">Tous les organisateurs</option>
+            </select>
+          </div>
+
+          <!-- Statut -->
+          <div class="col-12 col-md-6 col-lg-3">
+            <label for="statusSelect" class="form-label text-secondary small mb-1">Statut</label>
+            <select id="statusSelect" class="form-select bg-dark text-light border-secondary">
+              <option value="">Tous les statuts</option>
+              <option value="PENDING">En attente</option>
+              <option value="VALIDATED">Validé</option>
+              <option value="REJECTED">Rejeté</option>
+              <option value="STARTED">En cours</option>
+              <option value="FINISHED">Terminé</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-3">
+          <div class="text-secondary small">
+            <span id="resultsCount">0</span> événement(s) trouvé(s)
+          </div>
+
+          <button id="resetFilters" type="button" class="btn btn-outline-light btn-sm">
+            Réinitialiser
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards -->
+    <div id="eventsList" class="row g-4"></div>
+
+  </main>
+
+  <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+
+  <footer id="app-footer"></footer>
+
+  <!-- Bootstrap -->
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Layout puis page -->
+  <script src="./assets/js/include.js"></script>
+  <script src="./assets/pages/events.js"></script>
+
+</body>
+
+</html>

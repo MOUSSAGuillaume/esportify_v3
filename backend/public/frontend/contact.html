@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Esportify — Contact</title>
+
+  <!-- Bootstrap CSS (si ton header injecté ne le met pas déjà) -->
+  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+
+  <!-- Page CSS -->
+  <link rel="stylesheet" href="./assets/css/contact.css" />
+</head>
+
+<body class="page-wrap">
+  <header id="app-header"></header>
+
+  <main class="container py-4 py-lg-5">
+    <div class="contact-hero text-center mb-4 mb-lg-5">
+      <h1 class="contact-hero__title">Contactez-nous</h1>
+      <p class="contact-hero__subtitle mx-auto">
+        Une question, une suggestion ou un partenariat ? Écris-nous et on te répond vite.
+      </p>
+    </div>
+
+    <section class="contact-card mx-auto">
+      <div class="row g-0 contact-card__row">
+        <!-- Col gauche : infos -->
+        <div class="col-12 col-lg-4 contact-card__info">
+          <div class="contact-card__infoInner">
+            <div class="contact-info">
+              <div class="contact-info__item">
+                <div class="contact-info__icon contact-info__icon--mail">✉</div>
+                <div>
+                  <div class="contact-info__label">Email</div>
+                  <div class="contact-info__value">contact@esportify.fr</div>
+                </div>
+              </div>
+
+              <div class="contact-info__item">
+                <div class="contact-info__icon contact-info__icon--phone">☎</div>
+                <div>
+                  <div class="contact-info__label">Téléphone</div>
+                  <div class="contact-info__value">+33 1 23 45 67 89</div>
+                </div>
+              </div>
+
+              <div class="contact-info__item">
+                <div class="contact-info__icon contact-info__icon--pin">⌁</div>
+                <div>
+                  <div class="contact-info__label">Adresse</div>
+                  <div class="contact-info__value">Montppellier, France</div>
+                </div>
+              </div>
+
+              <hr class="contact-card__divider" />
+
+              <div class="contact-social">
+                <div class="contact-social__title">Suivez-nous</div>
+                <div class="d-flex gap-2">
+                  <a class="social-btn" href="#" aria-label="X/Twitter">X</a>
+                  <a class="social-btn" href="#" aria-label="LinkedIn">in</a>
+                  <a class="social-btn" href="#" aria-label="Instagram">◎</a>
+                </div>
+              </div>
+
+              <div class="contact-tip mt-4">
+                <div class="contact-tip__title">Temps de réponse</div>
+                <div class="contact-tip__text">Généralement sous 24–48h.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col droite : formulaire -->
+        <div class="col-12 col-lg-8 contact-card__form">
+          <div class="contact-card__formInner">
+            <!-- Etat succès -->
+            <div id="contactSuccess" class="contact-success d-none">
+              <div class="contact-success__badge">✓</div>
+              <h2 class="contact-success__title">Message envoyé !</h2>
+              <p class="contact-success__text">
+                Merci 🙌 On te répond dès que possible.
+              </p>
+              <button id="sendAnother" class="btn btn-lg contact-btn contact-btn--ghost" type="button">
+                Envoyer un autre message
+              </button>
+            </div>
+
+            <!-- Formulaire -->
+            <div id="contactFormWrap">
+              <h2 class="contact-card__title">Envoyez-nous un message</h2>
+
+              <form id="contactForm" class="mt-4" novalidate>
+                <div class="row g-3">
+                  <div class="col-12 col-md-6">
+                    <label for="name" class="form-label">Nom complet</label>
+                    <input
+                      id="name"
+                      name="name"
+                      type="text"
+                      class="form-control form-control-lg"
+                      placeholder="John Doe"
+                      autocomplete="name"
+                      required
+                      minlength="2"
+                    />
+                    <div class="invalid-feedback">Veuillez saisir votre nom.</div>
+                  </div>
+
+                  <div class="col-12 col-md-6">
+                    <label for="email" class="form-label">Email</label>
+                    <input
+                      id="email"
+                      name="email"
+                      type="email"
+                      class="form-control form-control-lg"
+                      placeholder="john@example.com"
+                      autocomplete="email"
+                      required
+                    />
+                    <div class="invalid-feedback">Veuillez saisir un email valide.</div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="subject" class="form-label">Sujet</label>
+                    <input
+                      id="subject"
+                      name="subject"
+                      type="text"
+                      class="form-control form-control-lg"
+                      placeholder="Partenariat, bug, suggestion…"
+                      required
+                      minlength="3"
+                    />
+                    <div class="invalid-feedback">Veuillez saisir un sujet.</div>
+                  </div>
+
+                  <div class="col-12">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea
+                      id="message"
+                      name="message"
+                      class="form-control form-control-lg"
+                      rows="6"
+                      placeholder="Votre message..."
+                      required
+                      minlength="10"
+                    ></textarea>
+                    <div class="invalid-feedback">Message requis (10 caractères min).</div>
+                  </div>
+
+                  <!-- Honeypot anti-spam (doit rester vide) -->
+                  <div class="d-none">
+                    <label for="company">Company</label>
+                    <input id="company" name="company" type="text" tabindex="-1" autocomplete="off" />
+                  </div>
+
+                  <div class="col-12 d-flex align-items-center justify-content-end gap-3 mt-2">
+                    <button id="btnSend" type="submit" class="btn btn-lg contact-btn contact-btn--primary">
+                      Envoyer
+                    </button>
+                  </div>
+
+                  <p id="contactError" class="contact-error mt-2 d-none"></p>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+  </main>
+
+  <footer id="app-footer"></footer>
+
+  <!-- Bootstrap JS -->
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/js/include.js"></script>
+  <!-- Page JS -->
+  <script src="./assets/pages/contact.js"></script>
+</body>
+</html>

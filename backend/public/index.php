@@ -1,6 +1,29 @@
 <?php
+
 declare(strict_types=1);
+ini_set('session.cookie_httponly', '1');
+ini_set('session.use_strict_mode', '1');
+$origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+$allowed = [
+    'http://192.168.1.128:5500',
+    'http://localhost:5500',
+];
+
+if (in_array($origin, $allowed, true)) {
+    header('Access-Control-Allow-Origin: ' . $origin);
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-TOKEN');
+    header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
 use App\Middleware\RateLimitMiddleware;
+
 require __DIR__ . '/../vendor/autoload.php';
 
 
@@ -10,7 +33,6 @@ ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.cookie_secure', '0'); // local http
 session_start();
 
-header('Content-Type: application/json; charset=utf-8');
 
 $pdo = new PDO(
     "mysql:host=mysql;dbname=esportify;charset=utf8mb4",
@@ -19,7 +41,12 @@ $pdo = new PDO(
     [PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION]
 );
 
-$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+//$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?: '/';
+$path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+$path = rtrim($path, '/');
+if ($path === '') {
+    $path = '/';
+}
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 // ✅ Erreurs PHP -> JSON (prod friendly)
@@ -57,6 +84,7 @@ if ($path === '/login' || $path === '/register') {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 120, 60);
 }
 
+header('Content-Type: application/json; charset=utf-8');
 // ✅ Toutes les routes
 require __DIR__ . '/../config/routes.php';
 

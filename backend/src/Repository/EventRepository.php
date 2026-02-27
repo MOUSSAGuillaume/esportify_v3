@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repository;
@@ -51,7 +52,7 @@ final class EventRepository
 
     public function findByStatus(string $status): array
     {
-        $allowed = ['PENDING','VALIDATED','REJECTED','SUSPENDED'];
+        $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
         if (!in_array($status, $allowed, true)) {
             $status = 'PENDING';
         }
@@ -70,7 +71,7 @@ final class EventRepository
 
     public function updateStatus(int $eventId, string $status): bool
     {
-        $allowed = ['PENDING','VALIDATED','REJECTED','SUSPENDED'];
+        $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
         if (!in_array($status, $allowed, true)) {
             return false;
         }
@@ -197,4 +198,22 @@ final class EventRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
+    public function countAll(): int
+    {
+        return (int)$this->pdo
+            ->query("SELECT COUNT(*) FROM events")
+            ->fetchColumn();
+    }
+
+    public function countByStatus(string $status): int
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT COUNT(*) FROM events
+        WHERE status = :s
+    ");
+
+        $stmt->execute([':s' => $status]);
+
+        return (int)$stmt->fetchColumn();
+    }
 }

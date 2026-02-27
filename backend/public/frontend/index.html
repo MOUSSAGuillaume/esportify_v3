@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Esportify — Accueil</title>
+
+  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="./assets/css/home.css" />
+</head>
+
+<body class="page-wrap">
+  <header id="app-header"></header>
+
+  <main class="container py-4 py-lg-5">
+
+    <!-- HERO (2 colonnes + image à droite) -->
+    <section class="hero hero--split">
+      <div class="hero__bg"></div>
+
+      <div class="hero__grid">
+        <!-- Col gauche -->
+        <div class="hero__left">
+          <div class="hero__tag">
+            <span class="hero__dot"></span>
+            Plateforme E-sport #1 en France
+          </div>
+
+          <h1 class="hero__title">
+            Rejoignez la <span class="hero__accent">révolution</span> du E-sport
+          </h1>
+
+          <p class="hero__subtitle">
+            Participez à des tournois passionnants, affrontez les meilleurs joueurs et gravissez les échelons vers la
+            gloire esportive.
+          </p>
+
+          <div class="hero__actions">
+            <a href="./events.html" class="btn hero-btn hero-btn--primary">
+              Voir les événements
+            </a>
+
+            <a href="./contact.html" class="btn hero-btn hero-btn--ghost">
+              En savoir plus
+            </a>
+          </div>
+
+          <div class="hero__divider"></div>
+
+          <div class="hero__stats">
+            <div class="hero-stat">
+              <div class="hero-stat__value">500+</div>
+              <div class="hero-stat__label">Événements</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat__value">10K+</div>
+              <div class="hero-stat__label">Joueurs</div>
+            </div>
+            <div class="hero-stat">
+              <div class="hero-stat__value">50+</div>
+              <div class="hero-stat__label">Jeux</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col droite (image + overlays) -->
+        <div class="hero__right">
+          <div class="hero-media">
+            <img class="hero-media__img" src="./assets/img/esport.jpg" alt="Esportify" loading="lazy" />
+
+            <div class="hero-badge hero-badge--live">
+              <div class="hero-badge__icon">🎮</div>
+              <div class="hero-badge__text">
+                <div class="hero-badge__title">Tournoi Live</div>
+                <div class="hero-badge__sub">En cours</div>
+              </div>
+            </div>
+
+            <div class="hero-badge hero-badge--players">
+              <div class="hero-badge__icon">👥</div>
+              <div class="hero-badge__text">
+                <div class="hero-badge__title">+150</div>
+                <div class="hero-badge__sub">Participants</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="why mt-5">
+      <div class="why__head text-center">
+        <h2 class="section-title">Pourquoi Esportify ?</h2>
+        <p class="section-subtitle mx-auto">
+          Fondée en 2021, Esportify est devenue la référence française pour l'organisation d'événements e-sport.
+          Notre mission : démocratiser la compétition gaming.
+        </p>
+      </div>
+
+      <div class="row g-4 mt-3 why-tiles">
+        <div class="col-12 col-md-6 col-lg-3">
+          <article class="why-tile">
+            <div class="why-tile__icon why-tile__icon--purple">🏆</div>
+            <h3 class="why-tile__title">Compétitions Officielles</h3>
+            <p class="why-tile__text">
+              Des tournois reconnus avec des règles professionnelles et des arbitres qualifiés.
+            </p>
+          </article>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+          <article class="why-tile">
+            <div class="why-tile__icon why-tile__icon--cyan">👥</div>
+            <h3 class="why-tile__title">Communauté Active</h3>
+            <p class="why-tile__text">
+              Rejoignez une communauté de passionnés et échangez avec d'autres joueurs.
+            </p>
+          </article>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+          <article class="why-tile">
+            <div class="why-tile__icon why-tile__icon--orange">🎮</div>
+            <h3 class="why-tile__title">Multi-Jeux</h3>
+            <p class="why-tile__text">
+              League of Legends, CS2, Valorant, Fortnite… et bien d’autres titres populaires.
+            </p>
+          </article>
+        </div>
+
+        <div class="col-12 col-md-6 col-lg-3">
+          <article class="why-tile">
+            <div class="why-tile__icon why-tile__icon--green">🛡️</div>
+            <h3 class="why-tile__title">Environnement Sécurisé</h3>
+            <p class="why-tile__text">
+              Plateforme sécurisée respectant le RGPD et protégeant vos données.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- EVENTS (1 seule entête + bouton voir plus -->
+    <section class="events mt-5">
+      <div class="events-head">
+        <div>
+          <h2 class="section-title section-title--left">Événements</h2>
+          <p class="section-subtitle section-subtitle--left mb-0">Ne manquez aucune compétition</p>
+        </div>
+
+        <a class="btn btn-sm btn-outline-light events-all" href="./events.html">
+          Voir plus <span class="ms-2">→</span>
+        </a>
+      </div>
+
+      <div class="events-panel">
+        <div class="events-panel__inner">
+          <div id="eventsList" class="events-list">
+            <!-- Empty state -->
+            <div class="events-empty">
+              <div class="events-empty__icon">🎮</div>
+              <div class="events-empty__text">Aucun événement à venir pour le moment</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- GALERIE (carousel) -->
+    <section class="gallery mt-5">
+      <div class="text-center">
+        <h2 class="section-title">Galerie</h2>
+        <p class="section-subtitle mx-auto">Découvrez l'univers Esportify</p>
+      </div>
+
+      <div id="galleryCarousel" class="carousel slide gallery-carousel" data-bs-ride="carousel">
+        <div class="carousel-inner">
+          <div class="carousel-item active">
+            <div class="gallery-slide" style="background-image:url('./assets/img/communauté.jpg')">
+              <div class="gallery-slide__shade"></div>
+              <div class="gallery-slide__content">
+                <div class="gallery-slide__kicker"> Communauté Passionnée</div>
+                <div class="gallery-slide__title">Rejoindre des milliers de joueurs</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="carousel-item">
+            <div class="gallery-slide" style="background-image:url('./assets/img/competition.jpg')">
+              <div class="gallery-slide__shade"></div>
+              <div class="gallery-slide__content">
+                <div class="gallery-slide__kicker"> Compétitions Intenses</div>
+                <div class="gallery-slide__title">Affrontez les meilleurs joueurs</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="carousel-item">
+            <div class="gallery-slide" style="background-image:url('./assets/img/gaming.jpg')">
+              <div class="gallery-slide__shade"></div>
+              <div class="gallery-slide__content">
+                <div class="gallery-slide__kicker"> Gaming de haut niveau</div>
+                <div class="gallery-slide__title">Expérience de jeu optimale</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <button class="carousel-control-prev gallery-nav" type="button" data-bs-target="#galleryCarousel"
+          data-bs-slide="prev">
+          <span class="gallery-nav__btn" aria-hidden="true">‹</span>
+          <span class="visually-hidden">Précédent</span>
+        </button>
+
+        <button class="carousel-control-next gallery-nav" type="button" data-bs-target="#galleryCarousel"
+          data-bs-slide="next">
+          <span class="gallery-nav__btn" aria-hidden="true">›</span>
+          <span class="visually-hidden">Suivant</span>
+        </button>
+      </div>
+    </section>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+  </main>
+
+  <footer id="app-footer"></footer>
+
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- Inject header/footer -->
+  <script src="./assets/js/include.js"></script>
+  <!-- Script de la page -->
+  <script src="./assets/pages/home.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,69 @@
+.navbar {
+  backdrop-filter: blur(10px);
+  background: rgba(10, 10, 25, .6) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, .08);
+}
+
+.page-wrap {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main {
+  flex: 1;
+}
+
+footer {
+  border-top: 1px solid rgba(255, 255, 255, .08);
+  background: rgba(10, 10, 25, .5);
+}
+
+a {
+  text-decoration: none;
+}
+
+body {
+  background: linear-gradient(180deg, #0b0f1a, #0a0d18);
+}
+
+.bg-glass {
+  background: rgba(20, 25, 45, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+}
+
+.card {
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(145deg, #12172a, #0e1323);
+  transition: transform 0.2s ease;
+  border: none;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+}
+
+.badge-game {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #6c63ff;
+  padding: 5px 10px;
+  border-radius: 12px;
+  font-size: .75rem;
+}
+
+.filter-bar {
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(18, 23, 42, 0.9), rgba(14, 19, 35, 0.9));
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.35);
+}
+
+.filter-bar .form-control,
+.filter-bar .form-select,
+.filter-bar .input-group-text {
+  border-radius: 12px;
+}

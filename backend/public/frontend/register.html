@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Inscription | Esportify</title>
+    <meta name="description"
+        content="Esportify est une plateforme web de gestion d’événements e-sport : création, organisation, inscription et interaction." />
+
+    <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./assets/css/register.css" />
+</head>
+
+<body class="page-wrap">
+
+    <header id="app-header"></header>
+
+    <!-- Console overlay (optionnel) -->
+    <div class="console-overlay" id="console-overlay">
+        <div class="console-text" id="console-text"></div>
+    </div>
+
+    <main class="container py-4 py-lg-5 flex-grow-1">
+        <section class="container-signup" id="signup-block" style="display:none;">
+            <div class="console-image-bg">
+                <img src="./assets/img/img1.webp" alt="Console de jeu" class="console-real-img" loading="lazy" />
+
+                <!-- Formulaire positionné dans l'écran -->
+                <form id="signup-form" class="signup-form-overlay" autocomplete="off" novalidate>
+                    <h2 class="signup-title">Créer un compte</h2>
+                    <p class="signup-subtitle">
+                        Rejoignez Esportify et participez aux tournois en quelques clics.
+                    </p>
+
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Adresse Email</label>
+                        <input type="email" class="form-control" id="email" name="email" required
+                            placeholder="ex: joueur@email.com" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="pseudo" class="form-label">Pseudo</label>
+                        <input type="text" class="form-control" id="pseudo" name="username" required
+                            placeholder="ex: bbmousse" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Mot de passe</label>
+                        <input type="password" class="form-control" id="password" name="mot_de_passe" required
+                            placeholder="••••••••" />
+                        <div class="form-text password-rules">
+                            Au moins 8 caractères, 1 chiffre, 1 minuscule, 1 majuscule, 1 caractère spécial.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="confirm-password" class="form-label">Confirmer le mot de passe</label>
+                        <input type="password" class="form-control" id="confirm-password" name="confirmer_mot_de_passe"
+                            required placeholder="••••••••" />
+                    </div>
+
+                    <div id="form-error" class="form-error" aria-live="polite"></div>
+
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="submit" class="btn btn-esportify btn-esportify-primary">
+                            Créer mon compte
+                        </button>
+
+                        <a href="./login.html" class="btn btn-esportify btn-esportify-ghost">
+                            J’ai déjà un compte
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- Popup confirmation -->
+        <div id="confirmationPopup" class="confirmation-popup" style="display:none;" role="dialog" aria-modal="true">
+            <div class="popup-content">
+                <p>
+                    Un mail vous a été envoyé.<br>
+                    Merci de cliquer sur le lien pour valider votre compte.
+                </p>
+                <button class="btn btn-esportify btn-esportify-primary" type="button" id="closeConfirmationBtn">
+                    Fermer
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <footer id="app-footer"></footer>
+
+    <div id="rotate-message" class="rotate-message">
+        <div>
+            <svg width="70" height="70" fill="none" viewBox="0 0 70 70">
+                <rect x="10" y="22" width="50" height="26" rx="7" fill="#3b2d58" />
+                <rect x="18" y="32" width="34" height="6" rx="3" fill="#7357ee" />
+                <path d="M 35 10 L 35 18" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+                <path d="M 35 52 L 35 60" stroke="#fff" stroke-width="3" stroke-linecap="round" />
+            </svg>
+            <br>
+            <strong>Tournez votre téléphone<br>en mode paysage !</strong>
+        </div>
+    </div>
+
+    <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/include.js"></script>
+    <script src="./assets/pages/register.js"></script>
+</body>
+
+</html>

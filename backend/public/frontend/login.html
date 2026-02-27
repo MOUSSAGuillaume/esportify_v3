@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Esportify — Connexion</title>
+  <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="./assets/css/login.css" />
+</head>
+
+<body class="page-wrap">
+  <header id="app-header"></header>
+
+  <main class="container py-4 py-lg-5">
+    <section class="auth-card mx-auto">
+      <div class="row g-0 auth-card__row">
+
+        <!-- Col gauche (image + CTA) -->
+        <div class="col-12 col-lg-6 auth-card__media">
+          <div class="auth-card__mediaInner">
+            <div class="auth-card__overlay"></div>
+
+            <!-- Tu peux changer l'image plus tard -->
+            <img
+              class="auth-card__img"
+              src="./assets/img/img2.jpg"
+              alt="Esportify"
+              loading="lazy"
+            />
+
+            <div class="auth-card__cta">
+              <button id="goRegister" type="button" class="btn btn-light auth-card__btnCta">
+                Create-account
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Col droite (form) -->
+        <div class="col-12 col-lg-6 auth-card__form">
+          <div class="auth-card__formInner">
+            <h1 class="auth-card__title">Sign in</h1>
+
+            <form id="loginForm" class="mt-4" novalidate>
+              <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input
+                  id="email"
+                  name="email"
+                  type="email"
+                  class="form-control form-control-lg"
+                  placeholder="email@exemple.com"
+                  autocomplete="email"
+                  required
+                />
+                <div class="invalid-feedback">Veuillez saisir un email valide.</div>
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  class="form-control form-control-lg"
+                  placeholder="••••••••"
+                  autocomplete="current-password"
+                  required
+                  minlength="6"
+                />
+                <div class="invalid-feedback">Mot de passe requis (6 caractères min).</div>
+              </div>
+
+              <!-- Zone "Carré" style captcha (placeholder pour l’instant) -->
+              <div class="auth-card__captcha my-3">
+                <div class="auth-card__captchaBox">
+                  <div class="form-check m-0">
+                    <input class="form-check-input" type="checkbox" id="fakeCaptcha">
+                    <label class="form-check-label" for="fakeCaptcha">
+                      Je ne suis pas un robot
+                    </label>
+                  </div>
+                  <small class="text-secondary d-block mt-1">
+                    (placeholder UI — reCAPTCHA à brancher plus tard)
+                  </small>
+                </div>
+              </div>
+
+              <div class="d-flex align-items-center justify-content-between gap-3 mt-4">
+                <a
+                  href="#"
+                  class="auth-card__link"
+                  data-bs-toggle="modal"
+                  data-bs-target="#resetPasswordModal"
+                >
+                  Mot de passe oublié ?
+                </a>
+
+                <button id="btnLogin" type="submit" class="btn btn-warning btn-lg auth-card__btnSubmit">
+                  Connexion
+                </button>
+              </div>
+
+              <p id="loginError" class="auth-card__error mt-3 d-none"></p>
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+  </main>
+
+  <footer id="app-footer"></footer>
+
+  <!-- Bootstrap JS -->
+  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="./assets/js/include.js"></script>
+
+  <!-- Page JS -->
+  <script src="./assets/pages/login.js"></script>
+
+  <!-- Modal Reset Password -->
+  <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content auth-modal">
+        <div class="modal-header border-0">
+          <div>
+            <h2 class="modal-title fs-5">Réinitialisation du mot de passe</h2>
+            <p class="text-secondary mb-0 mt-1">Entrez votre email pour recevoir un lien.</p>
+          </div>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+        </div>
+
+        <div class="modal-body pt-0">
+          <label for="resetEmail" class="form-label">Email</label>
+          <input type="email" id="resetEmail" class="form-control form-control-lg" placeholder="email@exemple.com" />
+
+          <p id="resetMessage" class="mt-3 mb-0 d-none"></p>
+
+          <button id="resetBtn" class="btn btn-primary w-100 mt-3 btn-lg">
+            Envoyer
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
