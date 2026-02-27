@@ -1,27 +1,17 @@
-//import { loadLayout } from "../js/include.js";
-import { login } from "../js/auth.js";
 import { toast } from "../js/ui.js";
 import { api, fetchCsrf } from "../js/api.js";
-
-await loadLayout();
 
 const form = document.getElementById("loginForm");
 const emailEl = document.getElementById("email");
 const passEl = document.getElementById("password");
 const btnLogin = document.getElementById("btnLogin");
 const loginError = document.getElementById("loginError");
-
 const goRegister = document.getElementById("goRegister");
 
-// Reset modal
-const resetEmail = document.getElementById("resetEmail");
-const resetBtn = document.getElementById("resetBtn");
-const resetMessage = document.getElementById("resetMessage");
-
-// Petit helper UI
 function setLoading(isLoading) {
-  if (btnLogin) btnLogin.disabled = isLoading;
-  if (btnLogin) btnLogin.textContent = isLoading ? "Connexion..." : "Connexion";
+  if (!btnLogin) return;
+  btnLogin.disabled = isLoading;
+  btnLogin.textContent = isLoading ? "Connexion..." : "Connexion";
 }
 
 function showError(msg) {
@@ -39,29 +29,27 @@ function hideError() {
 function validateForm() {
   let ok = true;
 
-  if (!emailEl.value.trim() || !emailEl.checkValidity()) {
-    emailEl.classList.add("is-invalid");
+  if (!emailEl?.value.trim() || !emailEl.checkValidity()) {
+    emailEl?.classList.add("is-invalid");
     ok = false;
   } else {
-    emailEl.classList.remove("is-invalid");
+    emailEl?.classList.remove("is-invalid");
   }
 
-  if (!passEl.value.trim() || passEl.value.trim().length < 6) {
-    passEl.classList.add("is-invalid");
+  if (!passEl?.value.trim() || passEl.value.trim().length < 6) {
+    passEl?.classList.add("is-invalid");
     ok = false;
   } else {
-    passEl.classList.remove("is-invalid");
+    passEl?.classList.remove("is-invalid");
   }
 
   return ok;
 }
 
-// CTA inscription
 goRegister?.addEventListener("click", () => {
-  window.location.href = "./register.html"; // adapte si ton fichier s'appelle différemment
+  window.location.href = "./register.html";
 });
 
-// Submit login
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideError();
@@ -71,7 +59,6 @@ form?.addEventListener("submit", async (e) => {
   try {
     setLoading(true);
 
-    // CSRF puis login
     await fetchCsrf();
     await api("/login", {
       method: "POST",
@@ -84,8 +71,8 @@ form?.addEventListener("submit", async (e) => {
 
     toast("Connexion réussie ✅", "success");
 
-    // Redirection (choisis ta page)
-    window.location.href = "./events.html";
+    // IMPORTANT : redirige vers une page du même host:8080
+    window.location.href = "./admin.html"; // ou ./events.html
   } catch (err) {
     const msg = err?.data?.error || err?.message || "Erreur de connexion";
     showError(msg);

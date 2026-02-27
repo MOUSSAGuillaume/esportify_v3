@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Esportify — Administration</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="./assets/css/home.css">
+  <!--<link rel="stylesheet" href="./assets/css/admin.css">-->
+</head>
+
+<body class="page-wrap">
+  <header id="app-header"></header>
+
+  <main class="container py-4 py-lg-5">
+
+    <div class="d-flex align-items-center gap-3 mb-4">
+      <div class="admin-icon"><span class="fw-bold">🛡️</span></div>
+      <div>
+        <h1 class="h3 mb-1">Administration</h1>
+        <div class="text-secondary">Gérez la plateforme Esportify</div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-lg-3">
+        <div class="card card-glass">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary small">Utilisateurs</div>
+              <div class="display-6 fw-bold" id="statUsers">—</div>
+            </div>
+            <div class="stat-ico">👥</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-glass">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary small">Événements</div>
+              <div class="display-6 fw-bold" id="statEvents">—</div>
+            </div>
+            <div class="stat-ico">📅</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-glass">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary small">En attente</div>
+              <div class="display-6 fw-bold text-warning" id="statPending">—</div>
+            </div>
+            <div class="stat-ico text-warning">⏳</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-3">
+        <div class="card card-glass">
+          <div class="card-body d-flex justify-content-between align-items-center">
+            <div>
+              <div class="text-secondary small">Messages</div>
+              <div class="display-6 fw-bold text-danger" id="statUnread">—</div>
+            </div>
+            <div class="stat-ico text-danger">✉️</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-12 col-lg-6">
+        <div class="card card-glass">
+          <div class="card-header bg-transparent border-0">
+            <div class="fw-bold">📊 Événements par statut</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-box"><canvas id="chartEvents"></canvas></div>
+            <div class="d-flex flex-wrap gap-3 justify-content-center mt-3 small" id="legendEvents"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-6">
+        <div class="card card-glass">
+          <div class="card-header bg-transparent border-0">
+            <div class="fw-bold">📈 Utilisateurs par rôle</div>
+          </div>
+          <div class="card-body">
+            <div class="chart-box"><canvas id="chartUsers"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav nav-pills gap-2 mb-3" id="adminTabs">
+      <li class="nav-item">
+        <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#tab-events" type="button">
+          Événements (<span id="pillPending">0</span> en attente)
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-users" type="button">
+          Utilisateurs
+        </button>
+      </li>
+      <li class="nav-item">
+        <button class="nav-link" data-bs-toggle="pill" data-bs-target="#tab-messages" type="button">
+          Messages (<span id="pillUnread">0</span>)
+        </button>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div class="tab-pane fade show active" id="tab-events">
+        <div class="card card-glass">
+          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+            <div class="fw-bold">Événements en attente</div>
+            <button class="btn btn-outline-light btn-sm" id="btnRefreshEvents">Rafraîchir</button>
+          </div>
+          <div class="card-body">
+            <div id="eventsEmpty" class="text-secondary text-center py-4 d-none">Aucun événement en attente</div>
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                  <th>#</th><th>Titre</th><th>Organisateur</th><th>Début</th><th>Max joueurs</th><th>Statut</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="eventsTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tab-users">
+        <div class="card card-glass">
+          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+            <div class="fw-bold">Gestion des utilisateurs</div>
+            <button class="btn btn-outline-light btn-sm" id="btnRefreshUsers">Rafraîchir</button>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="table table-dark table-hover align-middle mb-0">
+                <thead>
+                <tr>
+                  <th>#</th><th>Email</th><th>Pseudo</th><th>Rôle</th><th>Actif</th><th>Suspension</th><th>Créé le</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+                </thead>
+                <tbody id="usersTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="tab-pane fade" id="tab-messages">
+        <div class="card card-glass">
+          <div class="card-header bg-transparent border-0 d-flex justify-content-between align-items-center">
+            <div class="fw-bold">Messages de contact</div>
+            <button class="btn btn-outline-light btn-sm" id="btnRefreshMessages">Rafraîchir</button>
+          </div>
+          <div class="card-body">
+            <div id="messagesEmpty" class="text-secondary text-center py-4 d-none">Aucun message</div>
+            <div class="list-group list-group-flush" id="messagesList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer id="app-footer"></footer>
+
+  <div class="modal fade" id="messageModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+      <div class="modal-content bg-dark text-white border border-white/10">
+        <div class="modal-header border-white/10">
+          <h5 class="modal-title" id="modalSubject">Message</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="text-secondary small mb-3" id="modalMeta"></div>
+          <div class="p-3 rounded-3 bg-black" style="white-space: pre-wrap;" id="modalBody"></div>
+        </div>
+        <div class="modal-footer border-white/10">
+          <a class="btn btn-primary" id="modalReply" href="#" target="_blank">Répondre</a>
+          <button class="btn btn-outline-light" data-bs-dismiss="modal">Fermer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <script src="./assets/js/include.js"></script>
+  <script src="./assets/pages/admin.js"></script>
+</body>
+</html>

@@ -1,6 +1,11 @@
 // assets/js/include.js (NON-MODULE)
 
-const API_BASE = "/"; // mets "" si même domaine/port
+const API_BASE = ""; // même domaine/port
+
+function apiUrl(path) {
+  const p = String(path || "");
+  return API_BASE.replace(/\/+$/, "") + "/" + p.replace(/^\/+/, "");
+}
 
 async function inject(selector, url) {
   const el = document.querySelector(selector);
@@ -17,7 +22,7 @@ async function inject(selector, url) {
 
 async function loadMe() {
   try {
-    const res = await fetch(API_BASE + "/me", { credentials: "include" });
+    const res = await fetch(apiUrl("/me"), { credentials: "include" });
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
@@ -58,15 +63,12 @@ function renderAuthUI(me) {
     </div>
   `;
 
-  const btn = document.querySelector("#btnLogout");
-  if (btn) {
-    btn.addEventListener("click", async () => {
-      try {
-        await fetch(API_BASE + "/logout", { method: "POST", credentials: "include" });
-      } catch { }
-      window.location.href = "./index.html";
-    });
-  }
+  document.querySelector("#btnLogout")?.addEventListener("click", async () => {
+    try {
+      await fetch(apiUrl("/logout"), { method: "POST", credentials: "include" });
+    } catch { }
+    window.location.href = "./index.html";
+  });
 }
 
 (async function main() {
@@ -77,8 +79,6 @@ function renderAuthUI(me) {
     const me = await loadMe();
     renderAuthUI(me);
 
-    console.log("[include.js] dispatch layout:ready", me);
-    // Signale aux pages que le layout est prêt
     window.dispatchEvent(new CustomEvent("layout:ready", { detail: { me } }));
   } catch (e) {
     console.error("include.js error", e);

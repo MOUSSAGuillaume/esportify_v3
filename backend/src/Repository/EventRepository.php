@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use PDO;
+use PDOException;
 
 final class EventRepository
 {
@@ -18,11 +19,11 @@ final class EventRepository
         ");
         $stmt->execute([
             'organizer_id' => $organizerId,
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'start_at' => $data['start_at'],
-            'end_at' => $data['end_at'],
-            'max_players' => (int)$data['max_players'],
+            'title'        => $data['title'],
+            'description'  => $data['description'],
+            'start_at'     => $data['start_at'],
+            'end_at'       => $data['end_at'],
+            'max_players'  => (int)$data['max_players'],
         ]);
 
         return (int)$this->pdo->lastInsertId();
@@ -30,12 +31,7 @@ final class EventRepository
 
     public function listValidated(?string $sort, ?string $order): array
     {
-        $sortMap = [
-            'date' => 'start_at',
-            'players' => 'max_players',
-            'organizer' => 'organizer_id',
-        ];
-
+        $sortMap = ['date' => 'start_at', 'players' => 'max_players', 'organizer' => 'organizer_id'];
         $col = $sortMap[$sort ?? 'date'] ?? 'start_at';
         $dir = strtolower($order ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 
@@ -47,48 +43,53 @@ final class EventRepository
             LIMIT 200
         ");
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
     public function findByStatus(string $status): array
     {
         $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
-        if (!in_array($status, $allowed, true)) {
-            $status = 'PENDING';
-        }
+        if (!in_array($status, $allowed, true)) $status = 'PENDING';
 
-        $stmt = $this->pdo->prepare("
+        // Requête "riche" avec created_at
+        $sql1 = "
             SELECT id, organizer_id, title, description, start_at, end_at, max_players, status, created_at
             FROM events
             WHERE status = :status
             ORDER BY created_at DESC
             LIMIT 200
-        ");
-        $stmt->execute(['status' => $status]);
+        ";
 
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        // Fallback si created_at n'existe pas
+        $sql2 = "
+            SELECT id, organizer_id, title, description, start_at, end_at, max_players, status
+            FROM events
+            WHERE status = :status
+            ORDER BY id DESC
+            LIMIT 200
+        ";
+
+        try {
+            $stmt = $this->pdo->prepare($sql1);
+            $stmt->execute(['status' => $status]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        } catch (PDOException) {
+            $stmt = $this->pdo->prepare($sql2);
+            $stmt->execute(['status' => $status]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+        }
     }
 
     public function updateStatus(int $eventId, string $status): bool
     {
         $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
-        if (!in_array($status, $allowed, true)) {
-            return false;
-        }
+        if (!in_array($status, $allowed, true)) return false;
 
-        $stmt = $this->pdo->prepare("
-            UPDATE events
-            SET status = :status
-            WHERE id = :id
-            LIMIT 1
-        ");
-        $stmt->execute([
-            'status' => $status,
-            'id' => $eventId,
-        ]);
-
+        $stmt = $this->pdo->prepare("UPDATE events SET status = :status WHERE id = :id");
+        $stmt->execute(['status' => $status, 'id' => $eventId]);
         return $stmt->rowCount() === 1;
     }
+
     public function findValidatedById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
@@ -98,8 +99,7 @@ final class EventRepository
             LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function findById(int $id): ?array
@@ -111,8 +111,7 @@ final class EventRepository
             LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
-        $row = $stmt->fetch(\PDO::FETCH_ASSOC);
-        return $row ?: null;
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
     public function setStartedNow(int $id): bool
@@ -121,10 +120,10 @@ final class EventRepository
             UPDATE events
             SET started_at = NOW()
             WHERE id = :id
-                AND status = 'VALIDATED'
-                AND started_at IS NULL
-                AND finished_at IS NULL
-                LIMIT 1
+              AND status = 'VALIDATED'
+              AND started_at IS NULL
+              AND finished_at IS NULL
+            LIMIT 1
         ");
         $stmt->execute(['id' => $id]);
         return $stmt->rowCount() === 1;
@@ -142,78 +141,15 @@ final class EventRepository
         return $stmt->rowCount() === 1;
     }
 
-    public function listValidatedFiltered(
-        ?string $q,
-        ?string $from,
-        ?string $to,
-        ?string $sort,
-        ?string $order,
-        int $limit = 200
-    ): array {
-        $sortMap = [
-            'date' => 'start_at',
-            'players' => 'max_players',
-            'organizer' => 'organizer_id',
-        ];
-
-        $col = $sortMap[$sort ?? 'date'] ?? 'start_at';
-        $dir = strtolower($order ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
-
-        if ($limit < 1) $limit = 1;
-        if ($limit > 200) $limit = 200;
-
-        $sql = "
-            SELECT id, organizer_id, title, description, start_at, end_at, max_players, status
-            FROM events
-            WHERE status = 'VALIDATED'
-        ";
-
-        $params = [];
-
-        if (is_string($q) && trim($q) !== '') {
-            $sql .= " AND (title LIKE :q OR description LIKE :q) ";
-            $params['q'] = '%' . trim($q) . '%';
-        }
-
-        if (is_string($from) && trim($from) !== '') {
-            $sql .= " AND start_at >= :from ";
-            $params['from'] = trim($from);
-        }
-
-        if (is_string($to) && trim($to) !== '') {
-            $sql .= " AND start_at <= :to ";
-            $params['to'] = trim($to);
-        }
-
-        $sql .= " ORDER BY $col $dir LIMIT :lim ";
-
-        $stmt = $this->pdo->prepare($sql);
-
-        foreach ($params as $k => $v) {
-            $stmt->bindValue(':' . $k, $v, PDO::PARAM_STR);
-        }
-        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
-
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-
     public function countAll(): int
     {
-        return (int)$this->pdo
-            ->query("SELECT COUNT(*) FROM events")
-            ->fetchColumn();
+        return (int)$this->pdo->query("SELECT COUNT(*) FROM events")->fetchColumn();
     }
 
     public function countByStatus(string $status): int
     {
-        $stmt = $this->pdo->prepare("
-        SELECT COUNT(*) FROM events
-        WHERE status = :s
-    ");
-
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM events WHERE status = :s");
         $stmt->execute([':s' => $status]);
-
         return (int)$stmt->fetchColumn();
     }
 }
