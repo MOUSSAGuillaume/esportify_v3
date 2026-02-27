@@ -46,6 +46,61 @@ final class EventRepository
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 
+    public function listValidatedFiltered(
+        ?string $q,
+        ?string $from,
+        ?string $to,
+        ?string $sort,
+        ?string $order,
+        int $limit = 200
+    ): array {
+        $sortMap = [
+            'date'      => 'start_at',
+            'players'   => 'max_players',
+            'organizer' => 'organizer_id',
+        ];
+
+        $col = $sortMap[$sort ?? 'date'] ?? 'start_at';
+        $dir = strtolower($order ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
+
+        $limit = max(1, min(200, $limit));
+
+        $sql = "
+        SELECT id, organizer_id, title, description, start_at, end_at, max_players, status
+        FROM events
+        WHERE status = 'VALIDATED'
+    ";
+
+        $params = [];
+
+        if (is_string($q) && trim($q) !== '') {
+            $sql .= " AND (title LIKE :q OR description LIKE :q) ";
+            $params['q'] = '%' . trim($q) . '%';
+        }
+
+        if (is_string($from) && trim($from) !== '') {
+            $sql .= " AND start_at >= :from ";
+            $params['from'] = trim($from);
+        }
+
+        if (is_string($to) && trim($to) !== '') {
+            $sql .= " AND start_at <= :to ";
+            $params['to'] = trim($to);
+        }
+
+        $sql .= " ORDER BY {$col} {$dir} LIMIT :lim ";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $k => $v) {
+            $stmt->bindValue(':' . $k, $v, PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+    
     public function findByStatus(string $status): array
     {
         $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];

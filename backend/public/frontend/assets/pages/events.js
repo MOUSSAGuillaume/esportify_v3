@@ -13,7 +13,7 @@ const statusSelect = document.getElementById("statusSelect");
 let events = [];
 let currentUser = null;
 
- //Utils
+//Utils
 function getStartDate(e) {
   return e.start_at ?? e.start_at ?? null;
 }
@@ -108,7 +108,10 @@ function applyFilters(items) {
   // Recherche
   const q = normalizeStr(searchInput?.value ?? "");
   if (q) {
-    out = out.filter(e => normalizeStr(e.name).includes(q));
+    out = out.filter(e => {
+      const title = e.title ?? e.name ?? e.event_name ?? e.eventName ?? "";
+      return normalizeStr(title).includes(q);
+    });
   }
 
   // Organisateur (si dispo)
