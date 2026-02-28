@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Esportify — Mes inscriptions</title>
+    <link rel="stylesheet" href="./assets/css/app.css">
+</head>
+
+<body class="page-wrap">
+    <header id="app-header"></header>
+
+    <main class="container py-4">
+        <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-3">
+            <div>
+                <h1 class="display-6 fw-bold mb-1">Mes inscriptions</h1>
+                <p class="text-secondary mb-0" id="subtitle">Chargement…</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a href="./events.html" class="btn btn-outline-light">Tous les événements</a>
+            </div>
+        </div>
+
+        <div class="card bg-dark text-light border-secondary mb-4">
+            <div class="card-body">
+                <div class="row g-3 align-items-end">
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label text-secondary small mb-1">Afficher</label>
+                        <select id="tabSelect" class="form-select bg-dark text-light border-secondary">
+                            <option value="upcoming">À venir</option>
+                            <option value="past">Passés</option>
+                            <option value="all">Tout</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <label class="form-label text-secondary small mb-1">Trier</label>
+                        <select id="sortSelect" class="form-select bg-dark text-light border-secondary">
+                            <option value="date_asc">Date (plus proche)</option>
+                            <option value="date_desc">Date (plus lointaine)</option>
+                            <option value="name_asc">Nom (A → Z)</option>
+                            <option value="name_desc">Nom (Z → A)</option>
+                        </select>
+                    </div>
+
+                    <div class="col-12 col-lg-6 d-flex justify-content-between align-items-center">
+                        <div class="text-secondary small">
+                            <span id="resultsCount">0</span> inscription(s)
+                        </div>
+
+                        <button id="reloadBtn" type="button" class="btn btn-outline-light btn-sm">
+                            Rafraîchir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="state" class="alert alert-info d-none"></div>
+
+        <div id="list" class="row g-4"></div>
+    </main>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+
+    <footer id="app-footer"></footer>
+
+    <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/include.js"></script>
+    <script type="module" src="./assets/pages/my-events.js"></script>
+</body>
+
+</html>

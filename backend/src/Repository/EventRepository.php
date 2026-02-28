@@ -295,4 +295,46 @@ final class EventRepository
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
+    public function findDetailById(int $id): ?array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT id, organizer_id, title, description, start_at, end_at,
+               max_players, status, started_at, finished_at
+        FROM events
+        WHERE id = :id
+        LIMIT 1
+    ");
+        $stmt->execute(['id' => $id]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function listMyRegisteredEvents(int $userId, int $limit = 200): array
+    {
+        $limit = max(1, min(200, $limit));
+
+        $stmt = $this->pdo->prepare("
+        SELECT
+            e.id, e.organizer_id, e.title, e.description,
+            e.start_at, e.end_at, e.max_players, e.status, e.started_at, e.finished_at,
+            COALESCE(rc.active_count, 0) AS registered_count
+        FROM registrations r
+        JOIN events e ON e.id = r.event_id
+        LEFT JOIN (
+            SELECT event_id, COUNT(*) AS active_count
+            FROM registrations
+            WHERE status = 'ACTIVE'
+            GROUP BY event_id
+        ) rc ON rc.event_id = e.id
+        WHERE r.user_id = :uid
+          AND r.status = 'ACTIVE'
+        ORDER BY e.start_at ASC
+        LIMIT :lim
+    ");
+        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
 }

@@ -146,6 +146,12 @@ if ($path === '/events' && $method === 'GET') {
     (new EventController($eventsRepo))->list();
     exit;
 }
+// Détail d'un event
+if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
+    (new EventController($eventsRepo))->show((int)$m[1]);
+    exit;
+}
+
 if ($path === '/events' && $method === 'POST') {
     AuthMiddleware::requireRole(['ORGANIZER']);
     (new EventController($eventsRepo))->create();
@@ -251,6 +257,13 @@ if ($path === '/me/stats' && $method === 'GET') {
     exit;
 }
 
+if ($path === '/me/registrations' && $method === 'GET') {
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
+    $meId = (int)($_SESSION['user']['id'] ?? 0);
+    (new EventRegistrationController($eventsRepo, $regRepo))->myRegistrations($meId);
+    exit;
+}
+
 // -------- USERS (view stats/results)
 if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $m)) {
     AuthMiddleware::requireLogin();
@@ -291,5 +304,10 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         $eventsRepo,
         $regRepo
     ))->post((int)$m[1]);
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
+    (new EventController($eventsRepo, $regRepo))->show((int)$m[1]);
     exit;
 }

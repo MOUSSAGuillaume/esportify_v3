@@ -40,27 +40,65 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+/** Active la nav centrale si tu as <ul id="navLinks"> */
 function setActiveLink() {
-  const path = location.pathname.split("/").pop(); // organizer.html
-  document.querySelectorAll("#navLinks a.nav-link").forEach(a => {
+  const path = location.pathname.split("/").pop();
+  document.querySelectorAll("#navLinks a.nav-link").forEach((a) => {
     const href = (a.getAttribute("href") || "").split("/").pop();
     if (href && href === path) a.classList.add("active");
   });
 }
 
-function ensureDashboardLink(role) {
-  const navLinks = document.querySelector("#navLinks");
-  if (!navLinks) return;
+/** CSRF: on stocke en localStorage pour le réutiliser (logout, POST, etc.) */
+async function getCsrfToken() {
+  const existing = localStorage.getItem("csrfToken");
+  if (existing) return existing;
 
-  // déjà présent ?
-  if (navLinks.querySelector('a[href="./organizer.html"]')) return;
+  try {
+    const res = await fetch(apiUrl("/csrf"), { credentials: "include" });
+    if (!res.ok) return null;
 
-  if (String(role).toUpperCase() === "ORGANIZER") {
-    const li = document.createElement("li");
-    li.className = "nav-item";
-    li.innerHTML = `<a class="nav-link fw-semibold" href="./organizer.html">Dashboard</a>`;
-    navLinks.appendChild(li);
+    const data = await res.json();
+    if (data?.csrfToken) {
+      localStorage.setItem("csrfToken", data.csrfToken);
+      return data.csrfToken;
+    }
+  } catch (e) {
+    console.error("getCsrfToken error", e);
   }
+  return null;
+}
+
+async function doLogout() {
+  const csrf = await getCsrfToken();
+
+  const res = await fetch(apiUrl("/logout"), {
+    method: "POST",
+    credentials: "include",
+    headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
+  });
+
+  if (!res.ok) {
+    const txt = await res.text().catch(() => "");
+    console.error("Logout failed:", res.status, txt);
+    throw new Error(`Logout HTTP ${res.status}`);
+  }
+}
+
+function roleBadgeHtml(role, currentPage) {
+  if (role === "ORGANIZER") {
+    return currentPage === "organizer.html"
+      ? `<span class="badge bg-primary">ORGANIZER</span>`
+      : `<a href="./organizer.html" class="badge bg-primary text-decoration-none">ORGANIZER</a>`;
+  }
+
+  if (role === "ADMIN") {
+    return currentPage === "admin.html"
+      ? `<span class="badge bg-warning text-dark">ADMIN</span>`
+      : `<a href="./admin.html" class="badge bg-warning text-dark text-decoration-none">ADMIN</a>`;
+  }
+
+  return `<span class="badge bg-dark">${escapeHtml(role)}</span>`;
 }
 
 function renderAuthUI(me) {
@@ -69,6 +107,7 @@ function renderAuthUI(me) {
 
   const user = me?.user ?? me ?? null;
 
+  // Non connecté
   if (!user) {
     navAuth.innerHTML = `<a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>`;
     return;
@@ -76,54 +115,38 @@ function renderAuthUI(me) {
 
   const role = String(user.role || "PLAYER").toUpperCase();
   const pseudo = user.pseudo || user.email || "Compte";
-
-  // Bouton selon rôle (dans le bloc à droite)
-  let roleBtn = "";
-  if (role === "ADMIN") {
-    roleBtn = `<a class="btn btn-warning btn-sm" href="./admin.html">Admin</a>`;
-  } else if (role === "ORGANIZER") {
-    roleBtn = `<a class="btn btn-primary btn-sm" href="./organizer.html">Dashboard</a>`;
-  } else {
-    // PLAYER (à adapter selon ta page)
-    roleBtn = `<a class="btn btn-outline-info btn-sm" href="./profile.html">Mon compte</a>`;
-  }
-
   const current = location.pathname.split("/").pop();
 
-  let roleBadge = "";
-
-  // ORGANIZER
-  if (role === "ORGANIZER") {
-    roleBadge = current === "organizer.html"
-      ? `<span class="badge bg-primary">ORGANIZER</span>`
-      : `<a href="./organizer.html" class="badge bg-primary text-decoration-none">ORGANIZER</a>`;
-  }
-
-  // ADMIN
-  else if (role === "ADMIN") {
-    roleBadge = current === "admin.html"
-      ? `<span class="badge bg-warning text-dark">ADMIN</span>`
-      : `<a href="./admin.html" class="badge bg-warning text-dark text-decoration-none">ADMIN</a>`;
-  }
-
-  // PLAYER
-  else {
-    roleBadge = `<span class="badge bg-dark">${escapeHtml(role)}</span>`;
-  }
+  const badgeRole = roleBadgeHtml(role, current);
 
   navAuth.innerHTML = `
-  <div class="d-flex align-items-center gap-2">
-    <span class="badge bg-secondary">${escapeHtml(pseudo)}</span>
-    ${roleBadge}
-    <button id="btnLogout" class="btn btn-outline-danger btn-sm" type="button">Logout</button>
-  </div>
-`;
+    <div class="d-flex align-items-center gap-2">
+      <span class="badge bg-secondary">${escapeHtml(pseudo)}</span>
+      ${badgeRole}
+      <button id="btnLogout" class="btn btn-outline-danger btn-sm" type="button">Logout</button>
+    </div>
+  `;
+
+  // ✅ Bind logout (IMPORTANT: après insertion du bouton)
+  document.querySelector("#btnLogout")?.addEventListener("click", async () => {
+    try {
+      await doLogout();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      window.location.href = "./index.html";
+    }
+  });
 }
 
 (async function main() {
   try {
     await inject("#app-header", "./partials/header.html");
     await inject("#app-footer", "./partials/footer.html");
+
+    // Optionnel mais confortable: précharger un token CSRF
+    // (ça évite un "petit délai" au clic logout)
+    getCsrfToken().catch(() => { });
 
     const me = await loadMe();
     renderAuthUI(me);

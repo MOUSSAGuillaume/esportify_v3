@@ -108,15 +108,14 @@ final class EventRegistrationController
             }
         }
 
-        try {
-            $this->regs->createActive($eventId, $userId);
-            $this->json(['message' => 'Inscription confirmée'], 201);
-        } catch (PDOException $e) {
-            // Ici on suppose duplicate (uq_event_user).
-            // Version pro: on renvoie 409 "Déjà inscrit", sinon 500.
-            // Sans analyser SQLSTATE, on garde ton comportement mais propre.
-            $this->json(['error' => 'Déjà inscrit'], 409);
+
+        $ok = $this->regs->ensureActive($eventId, $userId);
+        if (!$ok) {
+            $this->json(['error' => 'Inscription refusée pour cet événement'], 403);
+            return;
         }
+        $this->json(['message' => 'Inscription confirmée'], 201);
+        return;
     }
 
     // --------------------------
@@ -193,6 +192,12 @@ final class EventRegistrationController
         }
     }
 
+    public function myRegistrations(int $userId): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+        $rows = $this->events->listMyRegisteredEvents($userId);
+        echo json_encode(['events' => $rows], JSON_UNESCAPED_UNICODE);
+    }
 
     // --------------------------
     // POST /api/events/{eventId}/unregister

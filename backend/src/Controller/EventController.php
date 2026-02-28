@@ -1,21 +1,25 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
 
 use App\Repository\EventRepository;
+use App\Repository\RegistrationRepository;
 use App\Security\Csrf;
 use Throwable;
 
 final class EventController
 {
-    public function __construct(private EventRepository $events) {}
+    public function __construct(
+        private EventRepository $events,
+        private ?RegistrationRepository $regs = null
+    ) {}
 
     public function create(): void
     {
         header('Content-Type: application/json; charset=utf-8');
 
-        // CSRF
         $csrf = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? null;
         $csrf = is_string($csrf) ? trim($csrf, " \t\n\r\0\x0B\"'") : null;
         if (!Csrf::validate($csrf)) {
@@ -27,7 +31,6 @@ final class EventController
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
 
         try {
-            // validation minimale
             $title = trim((string)($data['title'] ?? ''));
             $desc  = trim((string)($data['description'] ?? ''));
             $start = (string)($data['start_at'] ?? '');
@@ -51,7 +54,7 @@ final class EventController
 
             http_response_code(201);
             echo json_encode(['message' => 'Événement créé (en attente)', 'id' => $id], JSON_UNESCAPED_UNICODE);
-        } catch (Throwable $e) {
+        } catch (Throwable) {
             http_response_code(500);
             echo json_encode(['error' => 'Erreur serveur'], JSON_UNESCAPED_UNICODE);
         }
@@ -69,7 +72,30 @@ final class EventController
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 200;
 
         $events = $this->events->listValidatedFiltered($q, $from, $to, $sort, $order, $limit);
-
         echo json_encode(['events' => $events], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function show(int $id): void
+    {
+        header('Content-Type: application/json; charset=utf-8');
+
+        $event = $this->events->findDetailById($id);
+        if (!$event) {
+            http_response_code(404);
+            echo json_encode(['error' => 'Événement introuvable'], JSON_UNESCAPED_UNICODE);
+            return;
+        }
+
+        $meId = (int)($_SESSION['user']['id'] ?? 0);
+        if ($meId > 0 && $this->regs) {
+            $event['is_registered'] = $this->regs->isActive($id, $meId);
+        } else {
+            $event['is_registered'] = false;
+        }
+
+        // utile pour le front
+        $event['registered_count'] = $this->regs ? $this->regs->countActive($id) : 0;
+
+        echo json_encode(['event' => $event], JSON_UNESCAPED_UNICODE);
     }
 }

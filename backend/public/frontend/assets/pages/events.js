@@ -15,7 +15,7 @@ let currentUser = null;
 
 //Utils
 function getStartDate(e) {
-  return e.start_at ?? e.start_at ?? null;
+  return e.start_at ?? e.startAT ?? null;
 }
 
 function getRegisteredCount(e) {
@@ -210,6 +210,9 @@ function eventCard(e) {
 }
 
 function actionButton(e) {
+  const id = e.id;
+  const registered = isRegistered(e);
+
   if (!currentUser) {
     return `
       <a href="./login.html" class="btn btn-outline-light w-100">
@@ -219,12 +222,20 @@ function actionButton(e) {
   }
 
   return `
-    <button
-      type="button"
-      class="btn btn-primary w-100 btn-register"
-      data-id="${e.id}">
-      S'inscrire
-    </button>
+    <div class="d-flex gap-2">
+      <a class="btn btn-outline-light w-100" href="./event.html?id=${encodeURIComponent(id)}">
+        Voir
+      </a>
+
+      ${registered
+      ? `<button type="button" class="btn btn-outline-danger w-100 btn-unregister" data-id="${id}">
+               Se désinscrire
+             </button>`
+      : `<button type="button" class="btn btn-primary w-100 btn-register" data-id="${id}">
+               S'inscrire
+             </button>`
+    }
+    </div>
   `;
 }
 
@@ -255,19 +266,48 @@ async function handleRegister(eventId) {
 }
 
 function bindEvents() {
-  // 1 seul listener pour tous les boutons
   listEl?.addEventListener("click", (e) => {
-    const btn = e.target.closest(".btn-register");
-    if (!btn) return;
-    const id = btn.dataset.id;
-    if (!id) return;
-    handleRegister(id);
+    const regBtn = e.target.closest(".btn-register");
+    if (regBtn) {
+      const id = regBtn.dataset.id;
+      if (id) handleRegister(id);
+      return;
+    }
+
+    const unregBtn = e.target.closest(".btn-unregister");
+    if (unregBtn) {
+      const id = unregBtn.dataset.id;
+      if (id) handleUnregister(id);
+      return;
+    }
   });
 
   sortSelect?.addEventListener("change", render);
   searchInput?.addEventListener("input", render);
   organizerSelect?.addEventListener("change", render);
   statusSelect?.addEventListener("change", render);
+}
+
+function isRegistered(e) {
+  return Boolean(
+    e.is_registered ??
+    e.isRegistered ??
+    e.registered ??
+    e.user_registered ??
+    false
+  );
+}
+
+async function handleUnregister(eventId) {
+  try {
+    await fetchCsrf();
+    await api(`/events/${eventId}/register`, { method: "DELETE", csrf: true });
+    toast("Désinscription réussie", "success");
+    await loadEvents();
+    render();
+  } catch (err) {
+    toast(err?.message || "Erreur", "danger");
+  }
 }
 
 //Init
