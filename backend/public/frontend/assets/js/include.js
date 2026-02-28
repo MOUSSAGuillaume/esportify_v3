@@ -40,6 +40,29 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
+function setActiveLink() {
+  const path = location.pathname.split("/").pop(); // organizer.html
+  document.querySelectorAll("#navLinks a.nav-link").forEach(a => {
+    const href = (a.getAttribute("href") || "").split("/").pop();
+    if (href && href === path) a.classList.add("active");
+  });
+}
+
+function ensureDashboardLink(role) {
+  const navLinks = document.querySelector("#navLinks");
+  if (!navLinks) return;
+
+  // déjà présent ?
+  if (navLinks.querySelector('a[href="./organizer.html"]')) return;
+
+  if (String(role).toUpperCase() === "ORGANIZER") {
+    const li = document.createElement("li");
+    li.className = "nav-item";
+    li.innerHTML = `<a class="nav-link fw-semibold" href="./organizer.html">Dashboard</a>`;
+    navLinks.appendChild(li);
+  }
+}
+
 function renderAuthUI(me) {
   const navAuth = document.querySelector("#navAuth");
   if (!navAuth) return;
@@ -51,24 +74,50 @@ function renderAuthUI(me) {
     return;
   }
 
-  const role = user.role || "PLAYER";
+  const role = String(user.role || "PLAYER").toUpperCase();
   const pseudo = user.pseudo || user.email || "Compte";
 
-  navAuth.innerHTML = `
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge bg-secondary">${escapeHtml(pseudo)}</span>
-      <span class="badge bg-dark">${escapeHtml(role)}</span>
-      ${role === "ADMIN" ? `<a class="btn btn-warning btn-sm" href="./admin.html">Admin</a>` : ``}
-      <button id="btnLogout" class="btn btn-outline-danger btn-sm" type="button">Logout</button>
-    </div>
-  `;
+  // Bouton selon rôle (dans le bloc à droite)
+  let roleBtn = "";
+  if (role === "ADMIN") {
+    roleBtn = `<a class="btn btn-warning btn-sm" href="./admin.html">Admin</a>`;
+  } else if (role === "ORGANIZER") {
+    roleBtn = `<a class="btn btn-primary btn-sm" href="./organizer.html">Dashboard</a>`;
+  } else {
+    // PLAYER (à adapter selon ta page)
+    roleBtn = `<a class="btn btn-outline-info btn-sm" href="./profile.html">Mon compte</a>`;
+  }
 
-  document.querySelector("#btnLogout")?.addEventListener("click", async () => {
-    try {
-      await fetch(apiUrl("/logout"), { method: "POST", credentials: "include" });
-    } catch { }
-    window.location.href = "./index.html";
-  });
+  const current = location.pathname.split("/").pop();
+
+  let roleBadge = "";
+
+  // ORGANIZER
+  if (role === "ORGANIZER") {
+    roleBadge = current === "organizer.html"
+      ? `<span class="badge bg-primary">ORGANIZER</span>`
+      : `<a href="./organizer.html" class="badge bg-primary text-decoration-none">ORGANIZER</a>`;
+  }
+
+  // ADMIN
+  else if (role === "ADMIN") {
+    roleBadge = current === "admin.html"
+      ? `<span class="badge bg-warning text-dark">ADMIN</span>`
+      : `<a href="./admin.html" class="badge bg-warning text-dark text-decoration-none">ADMIN</a>`;
+  }
+
+  // PLAYER
+  else {
+    roleBadge = `<span class="badge bg-dark">${escapeHtml(role)}</span>`;
+  }
+
+  navAuth.innerHTML = `
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge bg-secondary">${escapeHtml(pseudo)}</span>
+    ${roleBadge}
+    <button id="btnLogout" class="btn btn-outline-danger btn-sm" type="button">Logout</button>
+  </div>
+`;
 }
 
 (async function main() {
@@ -78,6 +127,7 @@ function renderAuthUI(me) {
 
     const me = await loadMe();
     renderAuthUI(me);
+    setActiveLink();
 
     window.dispatchEvent(new CustomEvent("layout:ready", { detail: { me } }));
   } catch (e) {

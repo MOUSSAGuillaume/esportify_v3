@@ -100,7 +100,7 @@ final class EventRepository
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
-    
+
     public function findByStatus(string $status): array
     {
         $allowed = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
@@ -206,5 +206,93 @@ final class EventRepository
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM events WHERE status = :s");
         $stmt->execute([':s' => $status]);
         return (int)$stmt->fetchColumn();
+    }
+
+    public function startEvent(int $eventId): bool
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE events
+        SET started_at = NOW()
+        WHERE id = :id
+          AND status = 'VALIDATED'
+          AND started_at IS NULL
+          AND finished_at IS NULL
+          AND NOW() >= DATE_SUB(start_at, INTERVAL 30 MINUTE)
+        LIMIT 1
+    ");
+        $stmt->execute(['id' => $eventId]);
+        return $stmt->rowCount() === 1;
+    }
+
+    public function findOwnedByOrganizer(int $eventId, int $organizerId): ?array
+    {
+        $stmt = $this->pdo->prepare("
+        SELECT *
+        FROM events
+        WHERE id = :id AND organizer_id = :oid
+        LIMIT 1
+    ");
+        $stmt->execute(['id' => $eventId, 'oid' => $organizerId]);
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function findByOrganizerWithFilters(
+        int $organizerId,
+        string $q = '',
+        string $status = '',
+        string $sort = 'start_desc',
+        int $limit = 200
+    ): array {
+        $limit = max(1, min(200, $limit));
+
+        $allowedStatus = ['PENDING', 'VALIDATED', 'REJECTED', 'SUSPENDED'];
+        $status = in_array($status, $allowedStatus, true) ? $status : '';
+
+        $sortMap = [
+            'start_asc'    => 'e.start_at ASC',
+            'start_desc'   => 'e.start_at DESC',
+            'created_desc' => 'e.id DESC',
+            'players_desc' => 'e.max_players DESC',
+        ];
+        $orderBy = $sortMap[$sort] ?? $sortMap['start_desc'];
+
+        $sql = "
+        SELECT
+            e.id, e.organizer_id, e.title, e.description,
+            e.start_at, e.end_at, e.max_players, e.status, e.started_at, e.finished_at,
+            COALESCE(r.active_count, 0) AS registered_count
+        FROM events e
+        LEFT JOIN (
+            SELECT event_id, COUNT(*) AS active_count
+            FROM registrations
+            WHERE status = 'ACTIVE'
+            GROUP BY event_id
+        ) r ON r.event_id = e.id
+        WHERE e.organizer_id = :oid
+    ";
+
+        $params = ['oid' => $organizerId];
+
+        if ($status !== '') {
+            $sql .= " AND e.status = :status ";
+            $params['status'] = $status;
+        }
+
+        if (trim($q) !== '') {
+            $sql .= " AND (e.title LIKE :q OR e.description LIKE :q) ";
+            $params['q'] = '%' . trim($q) . '%';
+        }
+
+        $sql .= " ORDER BY {$orderBy} LIMIT :lim";
+
+        $stmt = $this->pdo->prepare($sql);
+
+        foreach ($params as $k => $v) {
+            $stmt->bindValue(':' . $k, $v, is_int($v) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 }

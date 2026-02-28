@@ -1,0 +1,225 @@
+/*Esportify Organizer Dashboar*/
+:root {
+  --bg: #0b1220;
+  --panel: rgba(255, 255, 255, .04);
+  --panel2: rgba(255, 255, 255, .06);
+  --stroke: rgba(255, 255, 255, .08);
+  --text: rgba(255, 255, 255, .92);
+  --muted: rgba(255, 255, 255, .62);
+
+  --primary: #2f7cff;
+  --success: #25c77e;
+  --warning: #f4b740;
+  --danger: #ff4d4d;
+
+  --shadow: 0 20px 55px rgba(0, 0, 0, .45);
+  --radius: 18px;
+}
+
+/*Layout / Backgroun*/
+html,
+body {
+  height: 100%;
+}
+
+body.bg-light {
+  background:
+    radial-gradient(900px 450px at 15% -10%, rgba(47, 124, 255, .35), transparent 60%),
+    radial-gradient(700px 400px at 85% 0%, rgba(37, 199, 126, .22), transparent 55%),
+    radial-gradient(900px 600px at 50% 115%, rgba(244, 183, 64, .12), transparent 55%),
+    var(--bg) !important;
+  color: var(--text);
+}
+
+/* Sticky footer */
+body.layout-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+main.layout-main {
+  flex: 1 0 auto;
+}
+
+footer.layout-footer {
+  flex-shrink: 0;
+}
+
+/* Small polish */
+.container {
+  max-width: 1180px;
+}
+
+/*Typograph*/
+h1,
+.h3 {
+  color: var(--text);
+}
+
+.text-muted {
+  color: var(--muted) !important;
+}
+
+/* ✅ PATCH: labels visibles */
+.form-label,
+label.form-label {
+  color: rgba(255, 255, 255, .78) !important;
+  font-weight: 500;
+}
+
+/*Card*/
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .06), rgba(255, 255, 255, .03)) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: var(--shadow);
+}
+
+.card-header {
+  background: transparent !important;
+  border-bottom: 1px solid var(--stroke) !important;
+}
+
+.card-body {
+  padding: 18px;
+}
+
+/*Form*/
+.form-control,
+.form-select {
+  background: rgba(255, 255, 255, .05) !important;
+  color: var(--text) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: 14px !important;
+}
+
+.form-control::placeholder {
+  color: rgba(255, 255, 255, .45) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: rgba(47, 124, 255, .55) !important;
+  box-shadow: 0 0 0 .25rem rgba(47, 124, 255, .15) !important;
+}
+
+/* ✅ PATCH: menu select (options) lisibles selon navigateur */
+.form-select option {
+  background: #0f172a;
+  color: #e2e8f0;
+}
+
+/*Button*/
+.btn {
+  border-radius: 14px !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, rgba(47, 124, 255, 1), rgba(47, 124, 255, .75)) !important;
+  border: 1px solid rgba(47, 124, 255, .55) !important;
+  box-shadow: 0 12px 30px rgba(47, 124, 255, .18);
+}
+
+.btn-outline-secondary {
+  border-color: var(--stroke) !important;
+  color: var(--text) !important;
+}
+
+.btn-outline-secondary:hover {
+  background: rgba(255, 255, 255, .06) !important;
+  border-color: rgba(255, 255, 255, .14) !important;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, rgba(255, 77, 77, 1), rgba(255, 77, 77, .72)) !important;
+  border: 1px solid rgba(255, 77, 77, .6) !important;
+}
+
+/*Table (Bootstrap override*/
+/* ✅ PATCH IMPORTANT : Bootstrap met fond blanc sur table/td */
+.table {
+  color: var(--text) !important;
+  margin-bottom: 0;
+  background: transparent !important;
+}
+
+.table> :not(caption)>*>* {
+  background: transparent !important;
+  /* enlève le blanc des cellules */
+  color: var(--text) !important;
+}
+
+.table thead {
+  border-bottom: 1px solid var(--stroke);
+}
+
+.table thead th {
+  background: rgba(255, 255, 255, .03) !important;
+  color: rgba(255, 255, 255, .85) !important;
+  font-weight: 600;
+  border-bottom: 1px solid var(--stroke) !important;
+}
+
+.table tbody tr {
+  border-color: var(--stroke) !important;
+}
+
+.table-hover tbody tr:hover {
+  background: rgba(255, 255, 255, .03) !important;
+}
+
+.table td,
+.table th {
+  border-color: rgba(255, 255, 255, .06) !important;
+}
+
+/*Badge*/
+.badge {
+  border-radius: 999px;
+  padding: .38rem .6rem;
+  border: 1px solid rgba(255, 255, 255, .14);
+}
+
+.bg-success {
+  background: rgba(37, 199, 126, .18) !important;
+  color: #bff7df !important;
+  border-color: rgba(37, 199, 126, .35) !important;
+}
+
+.bg-warning {
+  background: rgba(244, 183, 64, .18) !important;
+  color: #ffe6b2 !important;
+  border-color: rgba(244, 183, 64, .35) !important;
+}
+
+.bg-danger {
+  background: rgba(255, 77, 77, .16) !important;
+  color: #ffd0d0 !important;
+  border-color: rgba(255, 77, 77, .35) !important;
+}
+
+.bg-secondary {
+  background: rgba(255, 255, 255, .10) !important;
+  color: rgba(255, 255, 255, .85) !important;
+  border-color: rgba(255, 255, 255, .18) !important;
+}
+
+/*Modal / Lis*/
+.modal-content {
+  background: rgba(10, 16, 28, .92) !important;
+  border: 1px solid var(--stroke) !important;
+  border-radius: 18px !important;
+  box-shadow: var(--shadow);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--stroke) !important;
+}
+
+.list-group-item {
+  background: rgba(255, 255, 255, .03) !important;
+  border-color: rgba(255, 255, 255, .08) !important;
+  color: var(--text) !important;
+}

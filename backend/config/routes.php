@@ -15,6 +15,7 @@ use App\Controller\MeController;
 use App\Controller\ResultController;
 use App\Controller\ChatController;
 use App\Controller\UserController;
+use App\Controller\OrganizerController;
 use App\Security\Csrf;
 use App\Middleware\AuthMiddleware;
 use App\Repository\UserRepository;
@@ -164,9 +165,46 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/unregister$#', $path, $m))
     exit;
 }
 
+if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new EventRegistrationController($eventsRepo, $regRepo))->refuse((int)$m[1], (int)$m[2]);
+    exit;
+}
+
 if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m)) {
     AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     (new EventRegistrationController($eventsRepo, $regRepo))->list((int)$m[1]);
+    exit;
+}
+
+// -------- ORGANIZER DASHBOARD
+if ($path === '/organizer/events' && $method === 'GET') {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new OrganizerController($eventsRepo, $regRepo))->listMyEvents();
+    exit;
+}
+
+if ($method === 'GET' && preg_match('#^/organizer/events/(\d+)/registrations$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new OrganizerController($eventsRepo, $regRepo))->eventRegistrations((int)$m[1]);
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/organizer/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new OrganizerController($eventsRepo, $regRepo))->refusePlayer((int)$m[1], (int)$m[2]);
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/organizer/events/(\d+)/start$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new OrganizerController($eventsRepo, $regRepo))->startEvent((int)$m[1]);
+    exit;
+}
+
+if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new EventRegistrationController($eventsRepo, $regRepo))->refuse((int)$m[1], (int)$m[2]);
     exit;
 }
 
