@@ -51,24 +51,12 @@ final class RegistrationRepository
         return (int) $stmt->fetchColumn();
     }
 
-    /*
-     * Inscription "pro" (idempotente)
-     * - REFUSED => interdit
-     * - CANCELLED => redevient ACTIVE
-     * - ACTIVE => ne fait rien
-     *
-     * Retourne:
-     *  - true si inscription ACTIVE assurée
-     *  - false si bloqué (REFUSED)
-     */
     public function ensureActive(int $eventId, int $userId): bool
     {
-        // Si déjà refusé => blocage définitif
         if ($this->isRefused($eventId, $userId)) {
             return false;
         }
 
-        // UPSERT : si existe (CANCELLED) => re-ACTIVE ; si ACTIVE => no-op
         $stmt = $this->pdo->prepare("
             INSERT INTO registrations (event_id, user_id, status)
             VALUES (:event_id, :user_id, :active)
@@ -110,7 +98,6 @@ final class RegistrationRepository
 
     public function cancel(int $eventId, int $userId): bool
     {
-        // Ici on veut uniquement ACTIVE -> CANCELLED
         $stmt = $this->pdo->prepare("
             UPDATE registrations
             SET status = :cancelled
@@ -131,7 +118,6 @@ final class RegistrationRepository
 
     private function setStatus(int $eventId, int $userId, string $status): void
     {
-        // nécessite UNIQUE(event_id,user_id)
         $stmt = $this->pdo->prepare("
             INSERT INTO registrations (event_id, user_id, status)
             VALUES (:event_id, :user_id, :status)
@@ -139,4 +125,26 @@ final class RegistrationRepository
         ");
         $stmt->execute(['event_id' => $eventId, 'user_id' => $userId, 'status' => $status]);
     }
+
+    /**
+     * Pour la page Profile : liste des inscriptions d'un user
+     */
+    public function listByUser(int $userId, int $limit = 500): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        $stmt = $this->pdo->prepare("
+            SELECT id, event_id, user_id, status, created_at
+            FROM registrations
+            WHERE user_id = :uid
+            ORDER BY created_at DESC
+            LIMIT :lim
+        ");
+        $stmt->bindValue(':uid', $userId, PDO::PARAM_INT);
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
 }

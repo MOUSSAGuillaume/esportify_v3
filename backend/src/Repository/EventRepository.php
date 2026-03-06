@@ -337,4 +337,31 @@ final class EventRepository
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
+
+    public function listAll(): array
+    {
+        $stmt = $this->pdo->query("
+        SELECT id, organizer_id, title, description, start_at, end_at, max_players, status, game
+        FROM events
+        ORDER BY start_at DESC
+        LIMIT 500
+    ");
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function listAllLight(int $limit = 500): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        $stmt = $this->pdo->prepare("
+        SELECT id, organizer_id, title, start_at, end_at, max_players, status, started_at, finished_at
+        FROM events
+        ORDER BY start_at DESC
+        LIMIT :lim
+    ");
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+    }
 }

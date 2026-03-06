@@ -13,7 +13,12 @@ final class UserRepository
 
     public function findByEmail(string $email): ?array
     {
-        $stmt = $this->pdo->prepare("SELECT * FROM users WHERE email = :email LIMIT 1");
+        $stmt = $this->pdo->prepare("
+            SELECT id, email, password_hash, pseudo, role, is_active, is_suspended, created_at
+            FROM users
+            WHERE email = :email
+            LIMIT 1
+        ");
         $stmt->execute(['email' => $email]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
@@ -25,8 +30,8 @@ final class UserRepository
             VALUES (:email, :hash, :pseudo)
         ");
         $stmt->execute([
-            'email' => $email,
-            'hash'  => $hash,
+            'email'  => $email,
+            'hash'   => $hash,
             'pseudo' => $pseudo,
         ]);
     }
@@ -35,7 +40,7 @@ final class UserRepository
     {
         $stmt = $this->pdo->prepare("SELECT 1 FROM users WHERE id = :id LIMIT 1");
         $stmt->execute(['id' => $id]);
-        return (bool)$stmt->fetchColumn();
+        return (bool) $stmt->fetchColumn();
     }
 
     public function listLatest(int $limit = 200): array
@@ -50,7 +55,7 @@ final class UserRepository
             LIMIT {$limit}
         ";
 
-        // Fallback minimal (si created_at/is_active n'existent pas)
+        // Fallback minimal
         $sql2 = "
             SELECT id, email, pseudo, role, is_suspended
             FROM users
@@ -81,23 +86,108 @@ final class UserRepository
 
     public function countAll(): int
     {
-        return (int)$this->pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
+        return (int) $this->pdo->query("SELECT COUNT(*) FROM users")->fetchColumn();
     }
 
     public function countByRole(string $role): int
     {
         $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE role = :r");
         $stmt->execute([':r' => $role]);
-        return (int)$stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function countSuspended(): int
     {
-        // fallback si la colonne n'existe pas => renvoie 0 plutôt que 500
         try {
-            return (int)$this->pdo->query("SELECT COUNT(*) FROM users WHERE is_suspended = 1")->fetchColumn();
+            return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE is_suspended = 1")->fetchColumn();
         } catch (PDOException) {
             return 0;
         }
+    }
+
+    /**
+     * Profil (page Profile)
+     * - Supporte bio si la colonne existe (fallback si non)
+     */
+    public function findById(int $id): ?array
+    {
+        $sqlWithBio = "
+            SELECT id, email, pseudo, role, is_active, is_suspended, created_at, bio
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ";
+
+        $sqlNoBio = "
+            SELECT id, email, pseudo, role, is_active, is_suspended, created_at
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ";
+
+        try {
+            $stmt = $this->pdo->prepare($sqlWithBio);
+            $stmt->execute(['id' => $id]);
+            $u = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $u ?: null;
+        } catch (PDOException) {
+            $stmt = $this->pdo->prepare($sqlNoBio);
+            $stmt->execute(['id' => $id]);
+            $u = $stmt->fetch(PDO::FETCH_ASSOC);
+            if (!$u) return null;
+
+            // On normalise "bio" pour éviter des if partout côté front
+            $u['bio'] = null;
+            return $u;
+        }
+    }
+
+    public function updateProfile(int $id, string $pseudo, ?string $bio): void
+    {
+        $sqlWithBio = "
+            UPDATE users
+            SET pseudo = :pseudo, bio = :bio
+            WHERE id = :id
+            LIMIT 1
+        ";
+
+        $sqlNoBio = "
+            UPDATE users
+            SET pseudo = :pseudo
+            WHERE id = :id
+            LIMIT 1
+        ";
+
+        try {
+            $stmt = $this->pdo->prepare($sqlWithBio);
+            $stmt->execute([
+                'id' => $id,
+                'pseudo' => $pseudo,
+                'bio' => $bio,
+            ]);
+        } catch (PDOException) {
+            // si tu n’as pas encore ajouté la colonne bio
+            $stmt = $this->pdo->prepare($sqlNoBio);
+            $stmt->execute([
+                'id' => $id,
+                'pseudo' => $pseudo,
+            ]);
+        }
+    }
+
+    public function listAllLight(int $limit = 500): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        $stmt = $this->pdo->prepare("
+        SELECT id, organizer_id, title, start_at, end_at, max_players, status, started_at, finished_at
+        FROM events
+        ORDER BY start_at DESC
+        LIMIT :lim
+    ");
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
 }

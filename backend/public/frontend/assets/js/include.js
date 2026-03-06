@@ -1,6 +1,6 @@
 // assets/js/include.js (NON-MODULE)
 
-const API_BASE = ""; // même domaine/port
+const API_BASE = "";
 
 function apiUrl(path) {
   const p = String(path || "");
@@ -18,6 +18,40 @@ async function inject(selector, url) {
     return;
   }
   el.innerHTML = await res.text();
+}
+
+function ensureBootstrapJs() {
+  return new Promise((resolve, reject) => {
+    if (window.bootstrap) {
+      resolve();
+      return;
+    }
+
+    const existing = document.querySelector('script[data-bootstrap-bundle="true"]');
+    if (existing) {
+      existing.addEventListener("load", () => resolve(), { once: true });
+      existing.addEventListener("error", () => reject(new Error("Bootstrap JS load error")), { once: true });
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js";
+    script.dataset.bootstrapBundle = "true";
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Bootstrap JS load error"));
+    document.head.appendChild(script);
+  });
+}
+
+function ensureBootstrapIcons() {
+  if (document.querySelector('link[data-bootstrap-icons]')) return;
+
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
+  link.dataset.bootstrapIcons = "true";
+
+  document.head.appendChild(link);
 }
 
 async function loadMe() {
@@ -40,7 +74,6 @@ function escapeHtml(str) {
     .replaceAll("'", "&#039;");
 }
 
-/** Active la nav centrale si tu as <ul id="navLinks"> */
 function setActiveLink() {
   const path = location.pathname.split("/").pop();
   document.querySelectorAll("#navLinks a.nav-link").forEach((a) => {
@@ -49,7 +82,6 @@ function setActiveLink() {
   });
 }
 
-/** CSRF: on stocke en localStorage pour le réutiliser (logout, POST, etc.) */
 async function getCsrfToken() {
   const existing = localStorage.getItem("csrfToken");
   if (existing) return existing;
@@ -59,9 +91,9 @@ async function getCsrfToken() {
     if (!res.ok) return null;
 
     const data = await res.json();
-    if (data?.csrfToken) {
-      localStorage.setItem("csrfToken", data.csrfToken);
-      return data.csrfToken;
+    if (data?.token) {
+      localStorage.setItem("csrfToken", data.token);
+      return data.token;
     }
   } catch (e) {
     console.error("getCsrfToken error", e);
@@ -75,7 +107,7 @@ async function doLogout() {
   const res = await fetch(apiUrl("/logout"), {
     method: "POST",
     credentials: "include",
-    headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
+    headers: csrf ? { "X-CSRF-Token": csrf } : {},
   });
 
   if (!res.ok) {
@@ -85,20 +117,20 @@ async function doLogout() {
   }
 }
 
-function roleBadgeHtml(role, currentPage) {
-  if (role === "ORGANIZER") {
-    return currentPage === "organizer.html"
-      ? `<span class="badge bg-primary">ORGANIZER</span>`
-      : `<a href="./organizer.html" class="badge bg-primary text-decoration-none">ORGANIZER</a>`;
-  }
+function roleLabel(role) {
+  const r = String(role || "").toUpperCase();
+  if (r === "ADMIN") return "Admin";
+  if (r === "ORGANIZER") return "Organisateur";
+  return "Joueur";
+}
 
-  if (role === "ADMIN") {
-    return currentPage === "admin.html"
-      ? `<span class="badge bg-warning text-dark">ADMIN</span>`
-      : `<a href="./admin.html" class="badge bg-warning text-dark text-decoration-none">ADMIN</a>`;
-  }
+function canOrganizer(role) {
+  const r = String(role || "").toUpperCase();
+  return r === "ORGANIZER" || r === "ADMIN";
+}
 
-  return `<span class="badge bg-dark">${escapeHtml(role)}</span>`;
+function isAdmin(role) {
+  return String(role || "").toUpperCase() === "ADMIN";
 }
 
 function renderAuthUI(me) {
@@ -107,7 +139,6 @@ function renderAuthUI(me) {
 
   const user = me?.user ?? me ?? null;
 
-  // Non connecté
   if (!user) {
     navAuth.innerHTML = `<a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>`;
     return;
@@ -115,19 +146,74 @@ function renderAuthUI(me) {
 
   const role = String(user.role || "PLAYER").toUpperCase();
   const pseudo = user.pseudo || user.email || "Compte";
-  const current = location.pathname.split("/").pop();
 
-  const badgeRole = roleBadgeHtml(role, current);
+  const linkProfile = "./profile.html";
+  const linkOrganizer = "./organizer.html";
+  const linkAdmin = "./admin.html";
+
+  const organizerItem = canOrganizer(role)
+    ? `
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-2" href="${linkOrganizer}">
+          <i class="bi bi-trophy"></i>
+          <span>Mes événements</span>
+        </a>
+      </li>
+    `
+    : "";
+
+  const adminItem = isAdmin(role)
+    ? `
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-2" href="${linkAdmin}">
+          <i class="bi bi-shield"></i>
+          <span>Administration</span>
+        </a>
+      </li>
+    `
+    : "";
 
   navAuth.innerHTML = `
-    <div class="d-flex align-items-center gap-2">
-      <span class="badge bg-secondary">${escapeHtml(pseudo)}</span>
-      ${badgeRole}
-      <button id="btnLogout" class="btn btn-outline-danger btn-sm" type="button">Logout</button>
+    <div class="d-flex align-items-center gap-2 user-menu">
+      <div class="dropdown">
+        <button
+          class="btn user-dropdown-btn d-flex align-items-center gap-2"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          <div class="user-avatar">
+            <i class="bi bi-person-fill"></i>
+          </div>
+          <span class="user-name">${escapeHtml(pseudo)}</span>
+        </button>
+
+        <ul class="dropdown-menu dropdown-menu-end user-dropdown shadow">
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="${linkProfile}">
+              <i class="bi bi-person"></i>
+              <span>Mon espace</span>
+            </a>
+          </li>
+
+          ${organizerItem}
+          ${adminItem}
+
+          <li><hr class="dropdown-divider"></li>
+
+          <li>
+            <button class="dropdown-item d-flex align-items-center gap-2 text-danger" id="btnLogout" type="button">
+              <i class="bi bi-box-arrow-right"></i>
+              <span>Déconnexion</span>
+            </button>
+          </li>
+        </ul>
+      </div>
+
+      <span class="badge user-role">${escapeHtml(roleLabel(role))}</span>
     </div>
   `;
 
-  // ✅ Bind logout (IMPORTANT: après insertion du bouton)
   document.querySelector("#btnLogout")?.addEventListener("click", async () => {
     try {
       await doLogout();
@@ -141,11 +227,12 @@ function renderAuthUI(me) {
 
 (async function main() {
   try {
+    ensureBootstrapIcons();
+    await ensureBootstrapJs();
+
     await inject("#app-header", "./partials/header.html");
     await inject("#app-footer", "./partials/footer.html");
 
-    // Optionnel mais confortable: précharger un token CSRF
-    // (ça évite un "petit délai" au clic logout)
     getCsrfToken().catch(() => { });
 
     const me = await loadMe();
