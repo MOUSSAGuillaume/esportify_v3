@@ -169,7 +169,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
 }
 
 if ($path === '/events' && $method === 'POST') {
-    AuthMiddleware::requireRole(['ORGANIZER']);
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     (new EventController($eventsRepo))->create();
     exit;
 }

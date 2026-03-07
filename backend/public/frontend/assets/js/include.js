@@ -148,7 +148,11 @@ function renderAuthUI(me) {
   const pseudo = user.pseudo || user.email || "Compte";
 
   const linkProfile = "./profile.html";
-  const linkOrganizer = "./organizer.html";
+
+  const linkOrganizer = role === "ADMIN"
+    ? "./admin_events.html"
+    : "./organizer.html";
+
   const linkAdmin = "./admin.html";
 
   const organizerItem = canOrganizer(role)

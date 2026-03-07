@@ -98,8 +98,8 @@ function render() {
             </div>
 
             <div class="mt-4 d-flex flex-wrap gap-2">
-              ${canCreateEvent() ? `<a class="btn btn-primary" href="/create-event.php">Créer un événement</a>` : ""}
-              <a class="btn btn-outline-secondary" href="/events.php">Voir les événements</a>
+              ${canCreateEvent() ? `<a class="btn btn-primary" href="../frontend/create_event.html">Créer un événement</a>` : ""}
+              <a class="btn btn-outline-secondary" href="../frontend/events.html">Voir les événements</a>
             </div>
           </div>
         </div>

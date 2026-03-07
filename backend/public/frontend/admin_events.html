@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Esportify — Administration événements</title>
+
+    <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./assets/css/home.css" />
+    <link rel="stylesheet" href="./assets/css/layout.css" />
+    <link rel="stylesheet" href="./assets/css/admin_events.css" />
+</head>
+
+<body class="page-wrap admin-events-page">
+    <header id="app-header"></header>
+
+    <main class="admin-events-main">
+        <div class="container admin-events-container py-4 py-lg-5">
+
+            <div class="admin-events-top mb-4">
+                <div>
+                    <h1 class="admin-events-title mb-2">Mes Événements</h1>
+                    <p class="admin-events-subtitle mb-0">Gérez vos tournois et compétitions</p>
+                </div>
+
+                    <span class="me-2">
+                        <a href="./create_event.html" class="btn admin-events-create-btn">
+                            ＋ Nouvel événement
+                        </a>
+                    </span>
+                    
+            </div>
+
+            <div class="row g-3 mb-4 admin-events-stats-row">
+                <div class="col-6 col-lg-3">
+                    <div class="admin-events-stat-card">
+                        <div class="admin-events-stat-value text-primary" id="statTotal">0</div>
+                        <div class="admin-events-stat-label">Total</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="admin-events-stat-card">
+                        <div class="admin-events-stat-value text-warning" id="statPending">0</div>
+                        <div class="admin-events-stat-label">En attente</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="admin-events-stat-card">
+                        <div class="admin-events-stat-value text-success" id="statActive">0</div>
+                        <div class="admin-events-stat-label">Actifs</div>
+                    </div>
+                </div>
+
+                <div class="col-6 col-lg-3">
+                    <div class="admin-events-stat-card">
+                        <div class="admin-events-stat-value text-secondary" id="statHistory">0</div>
+                        <div class="admin-events-stat-label">Terminés</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="admin-events-tabs-wrap mb-4">
+                <div class="nav nav-pills admin-events-tabs" role="tablist">
+                    <button class="nav-link active" id="tab-active-btn" data-bs-toggle="pill"
+                        data-bs-target="#tab-active" type="button" role="tab" aria-controls="tab-active"
+                        aria-selected="true">
+                        Actifs (<span id="countActive">0</span>)
+                    </button>
+
+                    <button class="nav-link" id="tab-pending-btn" data-bs-toggle="pill" data-bs-target="#tab-pending"
+                        type="button" role="tab" aria-controls="tab-pending" aria-selected="false">
+                        En attente (<span id="countPending">0</span>)
+                    </button>
+
+                    <button class="nav-link" id="tab-history-btn" data-bs-toggle="pill" data-bs-target="#tab-history"
+                        type="button" role="tab" aria-controls="tab-history" aria-selected="false">
+                        Historique (<span id="countHistory">0</span>)
+                    </button>
+                </div>
+            </div>
+
+            <div class="tab-content">
+
+                <div class="tab-pane fade show active" id="tab-active" role="tabpanel" aria-labelledby="tab-active-btn">
+                    <div class="admin-events-panel">
+                        <div id="activeList" class="admin-events-grid"></div>
+
+                        <div id="activeEmpty" class="admin-events-empty d-none">
+                            <div class="admin-events-empty-icon">📅</div>
+                            <p class="mb-0">Aucun événement</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-pending" role="tabpanel" aria-labelledby="tab-pending-btn">
+                    <div class="admin-events-panel">
+                        <div id="pendingList" class="admin-events-grid"></div>
+
+                        <div id="pendingEmpty" class="admin-events-empty d-none">
+                            <div class="admin-events-empty-icon">⏳</div>
+                            <p class="mb-0">Aucun événement en attente</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="tab-history" role="tabpanel" aria-labelledby="tab-history-btn">
+                    <div class="admin-events-panel">
+                        <div id="historyList" class="admin-events-grid"></div>
+
+                        <div id="historyEmpty" class="admin-events-empty d-none">
+                            <div class="admin-events-empty-icon">🗂️</div>
+                            <p class="mb-0">Aucun historique</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <footer id="app-footer"></footer>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+
+    <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/include.js"></script>
+    <script type="module" src="./assets/pages/admin_events.js"></script>
+</body>
+
+</html>
