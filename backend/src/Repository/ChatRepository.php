@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Repository;
@@ -15,13 +16,19 @@ final class ChatRepository
         return $this->db->selectCollection('event_messages');
     }
 
-    public function addMessage(int $eventId, int $userId, string $pseudo, string $message): void
-    {
+    public function addMessage(
+        int $eventId,
+        int $userId,
+        string $pseudo,
+        string $role,
+        string $message
+    ): void {
         $this->col()->insertOne([
-            'eventId' => $eventId,
-            'userId' => $userId,
-            'pseudo' => $pseudo,
-            'message' => $message,
+            'eventId'   => $eventId,
+            'userId'    => $userId,
+            'pseudo'    => $pseudo,
+            'role'      => $role,
+            'message'   => $message,
             'createdAt' => new UTCDateTime(),
         ]);
     }
@@ -33,11 +40,10 @@ final class ChatRepository
         if (is_string($after) && trim($after) !== '') {
             try {
                 $dt = new \DateTimeImmutable($after);
-                // UTCDateTime attend des millisecondes
                 $ms = ((int)$dt->format('U')) * 1000;
                 $filter['createdAt'] = ['$gt' => new UTCDateTime($ms)];
             } catch (\Exception $e) {
-                // after invalide => on ignore et on renvoie les derniers messages selon le tri
+                // on ignore after invalide
             }
         }
 
@@ -50,11 +56,13 @@ final class ChatRepository
         );
 
         $out = [];
+
         foreach ($cursor as $doc) {
             $out[] = [
-                'userId' => (int)($doc['userId'] ?? 0),
-                'pseudo' => (string)($doc['pseudo'] ?? ''),
-                'message' => (string)($doc['message'] ?? ''),
+                'userId'    => (int)($doc['userId'] ?? 0),
+                'pseudo'    => (string)($doc['pseudo'] ?? ''),
+                'role'      => (string)($doc['role'] ?? 'PLAYER'),
+                'message'   => (string)($doc['message'] ?? ''),
                 'createdAt' => isset($doc['createdAt'])
                     ? $doc['createdAt']->toDateTime()->format('c')
                     : null,

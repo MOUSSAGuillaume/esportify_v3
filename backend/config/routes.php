@@ -297,8 +297,9 @@ if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $
 }
 
 /* ---------------- CHAT ---------------- */
+
 if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
+    AuthMiddleware::requireLogin();
     (new ChatController(
         new ChatRepository(MongoClientFactory::db()),
         $eventsRepo,
