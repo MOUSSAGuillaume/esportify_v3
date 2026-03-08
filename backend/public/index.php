@@ -6,7 +6,7 @@ use App\Middleware\RateLimitMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 
-/**
+/*
  * ============================================================
  * 1) Environnement (dev/prod)
  * ============================================================
@@ -17,7 +17,7 @@ ini_set('display_errors', $isDev ? '1' : '0');
 ini_set('display_startup_errors', $isDev ? '1' : '0');
 error_reporting($isDev ? E_ALL : 0);
 
-/**
+/*
  * ============================================================
  * 2) Sécurité session
  * ============================================================
@@ -28,7 +28,7 @@ ini_set('session.cookie_samesite', 'Lax');
 ini_set('session.cookie_secure', '0'); // 1 en HTTPS
 session_start();
 
-/**
+/*
  * ============================================================
  * 3) CORS (dev)
  * - IMPORTANT: adapte la liste à ton front
@@ -44,8 +44,8 @@ $allowedOrigins = [
 if ($origin && in_array($origin, $allowedOrigins, true)) {
     header('Access-Control-Allow-Origin: ' . $origin);
     header('Access-Control-Allow-Credentials: true');
-    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-TOKEN');
-    header('Access-Control-Allow-Methods: GET, POST, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, X-CSRF-Token, X-CSRF-TOKEN');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
 }
 
 // Preflight
@@ -54,7 +54,7 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
     exit;
 }
 
-/**
+/*
  * ============================================================
  * 4) Helpers JSON
  * ============================================================
@@ -67,7 +67,7 @@ $sendJson = static function (array $payload, int $status = 200): void {
     exit;
 };
 
-/**
+/*
  * ============================================================
  * 5) Gestion d'erreurs -> JSON (propre)
  * ============================================================
@@ -98,7 +98,7 @@ set_error_handler(static function (int $severity, string $message, string $file,
     return true;
 });
 
-/**
+/*
  * ============================================================
  * 6) Connexion DB (PDO)
  * ============================================================
@@ -113,7 +113,7 @@ $pdo = new PDO(
     ]
 );
 
-/**
+/*
  * ============================================================
  * 7) Route parsing
  * ============================================================
@@ -125,7 +125,7 @@ if ($path === '') {
 }
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-/**
+/*
  * ============================================================
  * 8) Rate limit global (par IP + route)
  * - login/register: 10 req / 60s
@@ -135,13 +135,13 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
  */
 if ($path === '/login' || $path === '/register') {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 10, 60);
-} elseif ($method === 'POST' || $method === 'DELETE') {
+} elseif ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 60, 60);
 } else {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 120, 60);
 }
 
-/**
+/*
  * ============================================================
  * 9) Routes
  * - Ton routes.php doit utiliser $pdo, $path, $method
@@ -150,7 +150,7 @@ if ($path === '/login' || $path === '/register') {
  */
 require __DIR__ . '/../config/routes.php';
 
-/**
+/*
  * ============================================================
  * 10) Fallback 404 propre
  * ============================================================

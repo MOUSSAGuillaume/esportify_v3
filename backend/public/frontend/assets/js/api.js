@@ -6,19 +6,20 @@ export async function api(path, { method = "GET", body, csrf = false } = {}) {
   // CSRF si besoin
   if (csrf) {
     const token = localStorage.getItem("csrfToken");
-    if (token) headers["X-CSRF-TOKEN"] = token;
+    if (token) headers["X-CSRF-Token"] = token; // <-- important
   }
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     method,
     headers,
     body: body ? JSON.stringify(body) : undefined,
-    credentials: "include", // IMPORTANT: garde PHPSESSID
+    credentials: "include",
   });
 
   const text = await res.text();
   let data = null;
-  try { data = text ? JSON.parse(text) : null; } catch { data = { raw: text }; }
+  try { data = text ? JSON.parse(text) : null; }
+  catch { data = { raw: text }; }
 
   if (!res.ok) {
     const msg = data?.error || `Erreur HTTP ${res.status}`;
@@ -33,6 +34,7 @@ export async function api(path, { method = "GET", body, csrf = false } = {}) {
 
 export async function fetchCsrf() {
   const data = await api("/csrf");
-  if (data?.csrfToken) localStorage.setItem("csrfToken", data.csrfToken);
-  return data?.csrfToken;
+  const token = data?.token || null; // <-- backend renvoie token
+  if (token) localStorage.setItem("csrfToken", token);
+  return token;
 }

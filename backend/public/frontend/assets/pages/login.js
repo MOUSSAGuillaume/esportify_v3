@@ -8,6 +8,11 @@ const btnLogin = document.getElementById("btnLogin");
 const loginError = document.getElementById("loginError");
 const goRegister = document.getElementById("goRegister");
 
+// optionnels
+const resetBtn = document.getElementById("resetBtn");
+const resetEmail = document.getElementById("resetEmail");
+const resetMessage = document.getElementById("resetMessage");
+
 function setLoading(isLoading) {
   if (!btnLogin) return;
   btnLogin.disabled = isLoading;
@@ -60,7 +65,7 @@ form?.addEventListener("submit", async (e) => {
     setLoading(true);
 
     await fetchCsrf();
-    await api("/login", {
+    const data = await api("/login", {
       method: "POST",
       csrf: true,
       body: {
@@ -71,8 +76,22 @@ form?.addEventListener("submit", async (e) => {
 
     toast("Connexion réussie ✅", "success");
 
-    // IMPORTANT : redirige vers une page du même host:8080
-    window.location.href = "./admin.html"; // ou ./events.html
+    const user = data?.user ?? null;
+    const role = String(user?.role || "").toUpperCase();
+
+    // Redirection cohérente
+    if (role === "ADMIN") {
+      window.location.href = "./profile.html";
+      return;
+    }
+
+    if (role === "ORGANIZER") {
+      window.location.href = "./profile.html";
+      return;
+    }
+
+    // joueur par défaut
+    window.location.href = "./profile.html";
   } catch (err) {
     const msg = err?.data?.error || err?.message || "Erreur de connexion";
     showError(msg);
@@ -82,11 +101,13 @@ form?.addEventListener("submit", async (e) => {
   }
 });
 
-// Reset password (pour l’instant placeholder)
+// Reset password (placeholder propre)
 resetBtn?.addEventListener("click", async () => {
   const email = (resetEmail?.value || "").trim();
 
-  resetMessage?.classList.remove("d-none");
+  if (!resetMessage) return;
+
+  resetMessage.classList.remove("d-none");
   resetMessage.textContent = "";
 
   if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -95,10 +116,6 @@ resetBtn?.addEventListener("click", async () => {
     return;
   }
 
-  // Tu n’as pas encore d’endpoint reset côté API => on met proprement en “bientôt dispo”
   resetMessage.className = "mt-3 mb-0 text-secondary";
   resetMessage.textContent = "Fonction de réinitialisation à brancher côté API (bientôt).";
-
-  // Quand tu auras un endpoint, tu remplaceras par :
-  // await api("/password/reset-request", { method:"POST", body:{ email }, csrf:true })
 });

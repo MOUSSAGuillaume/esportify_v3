@@ -8,3 +8,5 @@ export const ROUTES = {
   events: "/events",
   leaderboard: "/leaderboard",
 };
+
+export const LOGIN_PAGE = "/frontend/login.html";

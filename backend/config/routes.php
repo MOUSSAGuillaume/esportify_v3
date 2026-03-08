@@ -15,6 +15,7 @@ use App\Controller\MeController;
 use App\Controller\ResultController;
 use App\Controller\ChatController;
 use App\Controller\UserController;
+use App\Controller\ProfileController;
 use App\Controller\OrganizerController;
 use App\Security\Csrf;
 use App\Middleware\AuthMiddleware;
@@ -40,7 +41,27 @@ $regRepo = new RegistrationRepository($pdo);
 $resultsRepo = new ResultRepository($pdo);
 $contactRepo = new ContactMessageRepository($pdo);
 
-// -------- AUTH
+/* ---------------- CSRF ---------------- */
+if ($path === '/csrf' && $method === 'GET') {
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(['token' => Csrf::token()], JSON_UNESCAPED_UNICODE);
+    exit;
+}
+
+/* ---------------- PROFILE ---------------- */
+if ($path === '/profile/me' && $method === 'GET') {
+    AuthMiddleware::requireLogin();
+    (new ProfileController($usersRepo, $regRepo, $eventsRepo))->me();
+    exit;
+}
+
+if ($path === '/profile/me' && $method === 'PUT') {
+    AuthMiddleware::requireLogin();
+    (new ProfileController($usersRepo, $regRepo, $eventsRepo))->updateMe();
+    exit;
+}
+
+/* ---------------- AUTH ---------------- */
 if ($path === '/register' && $method === 'POST') {
     (new AuthController(new AuthService($usersRepo)))->register();
     exit;
@@ -57,19 +78,14 @@ if ($path === '/me' && $method === 'GET') {
     (new AuthController(new AuthService($usersRepo)))->me();
     exit;
 }
-if ($path === '/csrf' && $method === 'GET') {
-    header('Content-Type: application/json; charset=utf-8');
-    echo json_encode(['csrfToken' => Csrf::token()], JSON_UNESCAPED_UNICODE);
-    exit;
-}
 
-// -------- HEALTH
+/* ---------------- HEALTH ---------------- */
 if ($path === '/health' && $method === 'GET') {
     (new \App\Controller\HealthController($pdo, MongoClientFactory::db()))->check();
     exit;
 }
 
-// -------- ADMIN
+/* ---------------- ADMIN ---------------- */
 if ($path === '/admin/ping' && $method === 'GET') {
     AuthMiddleware::requireRole(['ADMIN']);
     header('Content-Type: application/json; charset=utf-8');
@@ -141,24 +157,24 @@ if ($method === 'POST' && preg_match('#^/admin/messages/(\d+)/read$#', $path, $m
     exit;
 }
 
-// -------- EVENTS
+/* ---------------- EVENTS ---------------- */
 if ($path === '/events' && $method === 'GET') {
     (new EventController($eventsRepo))->list();
     exit;
 }
-// Détail d'un event
+
 if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
     (new EventController($eventsRepo))->show((int)$m[1]);
     exit;
 }
 
 if ($path === '/events' && $method === 'POST') {
-    AuthMiddleware::requireRole(['ORGANIZER']);
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     (new EventController($eventsRepo))->create();
     exit;
 }
 
-// -------- REGISTRATIONS
+/* ---------------- REGISTRATIONS ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
     AuthMiddleware::requireRole(['PLAYER']);
     (new EventRegistrationController($eventsRepo, $regRepo))->register((int)$m[1]);
@@ -183,7 +199,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m
     exit;
 }
 
-// -------- ORGANIZER DASHBOARD
+/* ---------------- ORGANIZER DASHBOARD ---------------- */
 if ($path === '/organizer/events' && $method === 'GET') {
     AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     (new OrganizerController($eventsRepo, $regRepo))->listMyEvents();
@@ -208,13 +224,7 @@ if ($method === 'POST' && preg_match('#^/organizer/events/(\d+)/start$#', $path,
     exit;
 }
 
-if ($method === 'POST' && preg_match('#^/events/(\d+)/registrations/(\d+)/refuse$#', $path, $m)) {
-    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
-    (new EventRegistrationController($eventsRepo, $regRepo))->refuse((int)$m[1], (int)$m[2]);
-    exit;
-}
-
-// -------- LIFECYCLE
+/* ---------------- LIFECYCLE ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/start$#', $path, $m)) {
     AuthMiddleware::requireRole(['ORGANIZER']);
     (new EventLifecycleController($eventsRepo, $regRepo))->start((int)$m[1]);
@@ -227,7 +237,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/join$#', $path, $m)) {
     exit;
 }
 
-// -------- RESULTS
+/* ---------------- RESULTS ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/finish$#', $path, $m)) {
     AuthMiddleware::requireRole(['ORGANIZER']);
     (new EventResultController($eventsRepo, $regRepo, $resultsRepo))->finish((int)$m[1]);
@@ -264,7 +274,7 @@ if ($path === '/me/registrations' && $method === 'GET') {
     exit;
 }
 
-// -------- USERS (view stats/results)
+/* ---------------- USERS ---------------- */
 if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $m)) {
     AuthMiddleware::requireLogin();
 
@@ -286,9 +296,10 @@ if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $
     exit;
 }
 
-// -------- CHAT
+/* ---------------- CHAT ---------------- */
+
 if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
+    AuthMiddleware::requireLogin();
     (new ChatController(
         new ChatRepository(MongoClientFactory::db()),
         $eventsRepo,
@@ -304,10 +315,5 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         $eventsRepo,
         $regRepo
     ))->post((int)$m[1]);
-    exit;
-}
-
-if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
-    (new EventController($eventsRepo, $regRepo))->show((int)$m[1]);
     exit;
 }

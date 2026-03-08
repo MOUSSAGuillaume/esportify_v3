@@ -1,14 +1,14 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Esportify — Contact</title>
 
-  <!-- Bootstrap CSS (si ton header injecté ne le met pas déjà) -->
   <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
-
-  <!-- Page CSS -->
+  <link rel="stylesheet" href="./assets/css/app.css" />
+  <link rel="stylesheet" href="./assets/css/layout.css" />
   <link rel="stylesheet" href="./assets/css/contact.css" />
 </head>
 
@@ -95,58 +95,29 @@
                 <div class="row g-3">
                   <div class="col-12 col-md-6">
                     <label for="name" class="form-label">Nom complet</label>
-                    <input
-                      id="name"
-                      name="name"
-                      type="text"
-                      class="form-control form-control-lg"
-                      placeholder="John Doe"
-                      autocomplete="name"
-                      required
-                      minlength="2"
-                    />
+                    <input id="name" name="name" type="text" class="form-control form-control-lg" placeholder="John Doe"
+                      autocomplete="name" required minlength="2" />
                     <div class="invalid-feedback">Veuillez saisir votre nom.</div>
                   </div>
 
                   <div class="col-12 col-md-6">
                     <label for="email" class="form-label">Email</label>
-                    <input
-                      id="email"
-                      name="email"
-                      type="email"
-                      class="form-control form-control-lg"
-                      placeholder="john@example.com"
-                      autocomplete="email"
-                      required
-                    />
+                    <input id="email" name="email" type="email" class="form-control form-control-lg"
+                      placeholder="john@example.com" autocomplete="email" required />
                     <div class="invalid-feedback">Veuillez saisir un email valide.</div>
                   </div>
 
                   <div class="col-12">
                     <label for="subject" class="form-label">Sujet</label>
-                    <input
-                      id="subject"
-                      name="subject"
-                      type="text"
-                      class="form-control form-control-lg"
-                      placeholder="Partenariat, bug, suggestion…"
-                      required
-                      minlength="3"
-                    />
+                    <input id="subject" name="subject" type="text" class="form-control form-control-lg"
+                      placeholder="Partenariat, bug, suggestion…" required minlength="3" />
                     <div class="invalid-feedback">Veuillez saisir un sujet.</div>
                   </div>
 
                   <div class="col-12">
                     <label for="message" class="form-label">Message</label>
-                    <textarea
-                      id="message"
-                      name="message"
-                      class="form-control form-control-lg"
-                      rows="6"
-                      placeholder="Votre message..."
-                      required
-                      minlength="10"
-                    ></textarea>
+                    <textarea id="message" name="message" class="form-control form-control-lg" rows="6"
+                      placeholder="Votre message..." required minlength="10"></textarea>
                     <div class="invalid-feedback">Message requis (10 caractères min).</div>
                   </div>
 
@@ -178,9 +149,10 @@
   <footer id="app-footer"></footer>
 
   <!-- Bootstrap JS -->
-  <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="./assets/js/include.js"></script>
   <!-- Page JS -->
   <script src="./assets/pages/contact.js"></script>
 </body>
+
 </html>

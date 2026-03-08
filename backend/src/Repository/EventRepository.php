@@ -160,11 +160,21 @@ final class EventRepository
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, organizer_id, start_at, end_at, status, started_at, finished_at
-            FROM events
-            WHERE id = :id
-            LIMIT 1
-        ");
+        SELECT
+            id,
+            organizer_id,
+            title,
+            description,
+            start_at,
+            end_at,
+            max_players,
+            status,
+            started_at,
+            finished_at
+        FROM events
+        WHERE id = :id
+        LIMIT 1
+    ");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
@@ -336,5 +346,32 @@ final class EventRepository
         $stmt->execute();
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
+    }
+
+    public function listAll(): array
+    {
+        $stmt = $this->pdo->query("
+        SELECT id, organizer_id, title, description, start_at, end_at, max_players, status, game
+        FROM events
+        ORDER BY start_at DESC
+        LIMIT 500
+    ");
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC);
+    }
+
+    public function listAllLight(int $limit = 500): array
+    {
+        $limit = max(1, min(500, $limit));
+
+        $stmt = $this->pdo->prepare("
+        SELECT id, organizer_id, title, start_at, end_at, max_players, status, started_at, finished_at
+        FROM events
+        ORDER BY start_at DESC
+        LIMIT :lim
+    ");
+        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
     }
 }

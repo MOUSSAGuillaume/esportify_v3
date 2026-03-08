@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Esportify — Direct & Chat</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./assets/css/layout.css">
+    <link rel="stylesheet" href="./assets/css/event-chat.css">
+</head>
+
+<body class="bg-light layout-root">
+    <header id="app-header"></header>
+
+    <main class="container py-4 layout-main">
+        <div class="chat-layout">
+            <section class="card chat-main-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h4 mb-0" id="chatTitle">Direct de l’événement</h1>
+                        <div id="chatMeta" class="text-muted small"></div>
+                    </div>
+                    <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">
+                        EN DIRECT
+                    </span>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="live-placeholder">
+                        <div class="live-placeholder__inner">
+                            <div class="live-placeholder__icon">▶</div>
+                            <div class="live-placeholder__title">Direct de l’événement</div>
+                            <div class="live-placeholder__subtitle">
+                                Zone prévue pour le flux live / suivi de match / bracket en direct.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="chatInfoBanner" class="chat-info-banner d-none"></div>
+
+                    <div id="chatMessages" class="chat-messages"></div>
+
+                    <form id="chatForm" class="chat-form">
+                        <input id="chatInput" class="form-control" type="text" maxlength="500"
+                            placeholder="Écrire un message..." autocomplete="off" />
+                        <button class="btn btn-primary" type="submit">Envoyer</button>
+                    </form>
+                </div>
+            </section>
+
+            <aside class="card chat-side-card">
+                <div class="card-header">
+                    <h2 class="h6 mb-0">Accès</h2>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">
+                        Le direct est visible, mais seuls les participants actifs, l’organisateur et l’administrateur
+                        peuvent écrire.
+                    </p>
+                    <div id="chatAccessState" class="small fw-semibold"></div>
+                    <hr>
+                    <a href="./events.html" class="btn btn-outline-light btn-sm w-100">Retour aux événements</a>
+                </div>
+            </aside>
+        </div>
+    </main>
+
+    <footer id="app-footer" class="layout-footer"></footer>
+
+    <div class="modal fade" id="accessDeniedModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Accès au chat restreint</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="accessDeniedMessage">
+                    Le chat est réservé aux participants de l’événement, mais vous pouvez visionner le direct.
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/include.js"></script>
+    <script type="module" src="./assets/pages/event-chat.js"></script>
+</body>
+
+</html>

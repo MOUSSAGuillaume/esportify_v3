@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Esportify — Créer un événement</title>
+
+    <link rel="stylesheet" href="./assets/vendor/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="./assets/css/home.css" />
+    <link rel="stylesheet" href="./assets/css/layout.css" />
+    <link rel="stylesheet" href="./assets/css/create_event.css" />
+</head>
+
+<body class="page-wrap create-event-page">
+    <header id="app-header"></header>
+
+    <main class="create-event-main">
+        <div class="container create-event-container py-4 py-lg-5">
+
+            <a href="./admin_events.html" class="create-event-back">
+                <span class="me-2">←</span> Retour
+            </a>
+
+            <div class="create-event-card">
+                <div class="create-event-card-header">
+                    <h1 class="create-event-title">Créer un événement</h1>
+                    <p class="create-event-subtitle mb-0">
+                        Votre événement sera soumis à validation avant publication
+                    </p>
+                </div>
+
+                <div class="create-event-card-body">
+                    <form id="createEventForm" class="create-event-form" novalidate>
+
+                        <div class="mb-4">
+                            <label for="title" class="form-label">Titre *</label>
+                            <input type="text" id="title" name="title" class="form-control create-input"
+                                placeholder="Nom de l'événement" required />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="game" class="form-label">Jeu</label>
+                            <input type="text" id="game" name="game" class="form-control create-input"
+                                placeholder="Ex: League of Legends, Valorant..." />
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="description" class="form-label">Description *</label>
+                            <textarea id="description" name="description"
+                                class="form-control create-input create-textarea"
+                                placeholder="Décrivez votre événement, les règles, les prix..." required></textarea>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="max_players" class="form-label">Nombre maximum de joueurs *</label>
+                            <input type="number" id="max_players" name="max_players" class="form-control create-input"
+                                min="2" value="10" required />
+                        </div>
+
+                        <div class="row g-4 mb-4">
+                            <div class="col-12 col-md-6">
+                                <label for="start_date" class="form-label">Date et heure de début *</label>
+                                <input type="datetime-local" id="start_date" name="start_date"
+                                    class="form-control create-input" required />
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="end_date" class="form-label">Date et heure de fin *</label>
+                                <input type="datetime-local" id="end_date" name="end_date"
+                                    class="form-control create-input" required />
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Image de couverture</label>
+
+                            <label for="cover_image" class="create-upload-zone">
+                                <div class="create-upload-icon">⤴</div>
+                                <div class="create-upload-text">Cliquez pour uploader</div>
+                                <input type="file" id="cover_image" name="cover_image" accept="image/*" hidden />
+                            </label>
+
+                            <div id="coverPreview" class="create-upload-preview d-none"></div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label">Images supplémentaires</label>
+
+                            <div class="create-gallery-upload">
+                                <label for="gallery_images" class="create-gallery-box">
+                                    <span>＋</span>
+                                    <input type="file" id="gallery_images" name="gallery_images" accept="image/*"
+                                        multiple hidden />
+                                </label>
+                            </div>
+
+                            <div id="galleryPreview" class="create-gallery-preview"></div>
+                        </div>
+
+                        <button type="submit" class="btn create-submit-btn w-100">
+                            Soumettre l'événement
+                        </button>
+
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <footer id="app-footer"></footer>
+
+    <div id="toastWrap" class="position-fixed bottom-0 end-0 p-3" style="z-index:3000;"></div>
+
+    <script src="./assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="./assets/js/include.js"></script>
+    <script type="module" src="./assets/pages/create_event.js"></script>
+</body>
+
+</html>
