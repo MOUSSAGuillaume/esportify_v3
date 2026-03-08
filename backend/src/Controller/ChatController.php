@@ -50,7 +50,17 @@ final class ChatController
         }
     }
 
-    private function getLiveEventOrFail(int $eventId): array
+    /**
+     * Event lisible pour le chat :
+     * - doit exister
+     * - doit être VALIDATED
+     * - ne doit pas être terminé
+     *
+     * Avant démarrage : OK
+     * Pendant direct : OK
+     * Après fin : refus
+     */
+    private function getReadableEventOrFail(int $eventId): array
     {
         $event = $this->events->findById($eventId);
 
@@ -62,17 +72,19 @@ final class ChatController
             $this->json(['error' => 'Événement non disponible'], 403);
         }
 
-        if (empty($event['started_at'])) {
-            $this->json(['error' => 'Le direct n’est pas encore disponible'], 403);
-        }
-
         if (!empty($event['finished_at'])) {
-            $this->json(['error' => 'Événement terminé'], 403);
+            $this->json(['error' => 'Le chat est fermé pour cet événement'], 403);
         }
 
         return $event;
     }
 
+    /**
+     * Écriture autorisée :
+     * - avant démarrage : oui pour rôles autorisés
+     * - pendant direct : oui pour rôles autorisés
+     * - après fin : jamais (déjà bloqué avant)
+     */
     private function canWriteToChat(array $event, array $user): bool
     {
         $userId = (int)($user['id'] ?? 0);
@@ -82,7 +94,7 @@ final class ChatController
             return true;
         }
 
-        if ($role === 'ORGANIZER' && $userId === (int)$event['organizer_id']) {
+        if ($role === 'ORGANIZER' && $userId === (int)($event['organizer_id'] ?? 0)) {
             return true;
         }
 
@@ -93,12 +105,35 @@ final class ChatController
         return false;
     }
 
+    /**
+     * Message d'information UI selon l'état
+     */
+    private function buildInfoMessage(array $event, bool $canWrite): ?string
+    {
+        $started = !empty($event['started_at']);
+
+        if ($canWrite && !$started) {
+            return 'Le salon est déjà ouvert avant le lancement. Vous pouvez écrire dans le chat.';
+        }
+
+        if ($canWrite && $started) {
+            return null;
+        }
+
+        if (!$started) {
+            return 'Le salon est ouvert avant le lancement, mais seuls les participants autorisés peuvent écrire.';
+        }
+
+        return 'Le direct est en cours. Vous pouvez consulter le fil, mais seuls les participants autorisés peuvent écrire.';
+    }
+
     // GET /events/{id}/chat
-    // Le direct est visible, le chat peut être en lecture seule
+    // Lecture possible avant démarrage et pendant le direct
+    // Après la fin : fermé
     public function list(int $eventId): void
     {
         $user = $this->me();
-        $event = $this->getLiveEventOrFail($eventId);
+        $event = $this->getReadableEventOrFail($eventId);
 
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 100;
         if ($limit < 1) $limit = 1;
@@ -115,27 +150,28 @@ final class ChatController
                 'title' => (string)($event['title'] ?? 'Événement'),
                 'status' => (string)($event['status'] ?? ''),
                 'started_at' => $event['started_at'] ?? null,
+                'finished_at' => $event['finished_at'] ?? null,
             ],
             'canWrite' => $canWrite,
-            'infoMessage' => $canWrite
-                ? null
-                : 'Le chat est réservé aux participants de l’événement, mais vous pouvez visionner le direct.',
+            'infoMessage' => $this->buildInfoMessage($event, $canWrite),
             'messages' => $messages,
         ]);
     }
 
     // POST /events/{id}/chat
-    // Seuls participants actifs / organizer propriétaire / admin peuvent écrire
+    // Avant démarrage : écriture autorisée pour rôles autorisés
+    // Pendant direct : écriture autorisée pour rôles autorisés
+    // Après fin : refus
     public function post(int $eventId): void
     {
         $this->requireCsrf();
 
         $user = $this->me();
-        $event = $this->getLiveEventOrFail($eventId);
+        $event = $this->getReadableEventOrFail($eventId);
 
         if (!$this->canWriteToChat($event, $user)) {
             $this->json([
-                'error' => 'Le chat est réservé aux participants de l’événement, mais vous pouvez visionner le direct.'
+                'error' => 'Vous n’êtes pas autorisé à écrire dans ce chat.'
             ], 403);
         }
 

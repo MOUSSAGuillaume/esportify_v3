@@ -17,6 +17,7 @@ async function inject(selector, url) {
     el.innerHTML = "";
     return;
   }
+
   el.innerHTML = await res.text();
 }
 
@@ -50,7 +51,6 @@ function ensureBootstrapIcons() {
   link.rel = "stylesheet";
   link.href = "https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css";
   link.dataset.bootstrapIcons = "true";
-
   document.head.appendChild(link);
 }
 
@@ -91,13 +91,16 @@ async function getCsrfToken() {
     if (!res.ok) return null;
 
     const data = await res.json();
-    if (data?.token) {
-      localStorage.setItem("csrfToken", data.token);
-      return data.token;
+    const token = data?.csrfToken ?? data?.token ?? null;
+
+    if (token) {
+      localStorage.setItem("csrfToken", token);
+      return token;
     }
   } catch (e) {
     console.error("getCsrfToken error", e);
   }
+
   return null;
 }
 
@@ -107,7 +110,7 @@ async function doLogout() {
   const res = await fetch(apiUrl("/logout"), {
     method: "POST",
     credentials: "include",
-    headers: csrf ? { "X-CSRF-Token": csrf } : {},
+    headers: csrf ? { "X-CSRF-TOKEN": csrf } : {},
   });
 
   if (!res.ok) {
@@ -140,7 +143,11 @@ function renderAuthUI(me) {
   const user = me?.user ?? me ?? null;
 
   if (!user) {
-    navAuth.innerHTML = `<a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>`;
+    navAuth.innerHTML = `
+      <div class="d-flex align-items-center gap-2">
+        <a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>
+      </div>
+    `;
     return;
   }
 
@@ -148,11 +155,8 @@ function renderAuthUI(me) {
   const pseudo = user.pseudo || user.email || "Compte";
 
   const linkProfile = "./profile.html";
-
-  const linkOrganizer = role === "ADMIN"
-    ? "./admin_events.html"
-    : "./organizer.html";
-
+  const linkMyEvents = "./my-events.html";
+  const linkOrganizer = role === "ADMIN" ? "./admin_events.html" : "./organizer.html";
   const linkAdmin = "./admin.html";
 
   const organizerItem = canOrganizer(role)
@@ -160,7 +164,7 @@ function renderAuthUI(me) {
       <li>
         <a class="dropdown-item d-flex align-items-center gap-2" href="${linkOrganizer}">
           <i class="bi bi-trophy"></i>
-          <span>Mes événements</span>
+          <span>Mes événements organisés</span>
         </a>
       </li>
     `
@@ -196,7 +200,14 @@ function renderAuthUI(me) {
           <li>
             <a class="dropdown-item d-flex align-items-center gap-2" href="${linkProfile}">
               <i class="bi bi-person"></i>
-              <span>Mon espace</span>
+              <span>Mon profil</span>
+            </a>
+          </li>
+
+          <li>
+            <a class="dropdown-item d-flex align-items-center gap-2" href="${linkMyEvents}">
+              <i class="bi bi-calendar-check"></i>
+              <span>Mes inscriptions</span>
             </a>
           </li>
 
@@ -224,6 +235,7 @@ function renderAuthUI(me) {
     } catch (e) {
       console.error(e);
     } finally {
+      localStorage.removeItem("csrfToken");
       window.location.href = "./index.html";
     }
   });
