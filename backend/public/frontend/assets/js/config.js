@@ -9,4 +9,4 @@ export const ROUTES = {
   leaderboard: "/leaderboard",
 };
 
-export const LOGIN_PAGE = "/frontend/login.html";
+export const LOGIN_PAGE = "/login";

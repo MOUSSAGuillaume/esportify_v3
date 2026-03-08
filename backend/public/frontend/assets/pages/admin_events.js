@@ -138,7 +138,7 @@ async function init() {
         const role = String(user?.role || "").toUpperCase();
 
         if (!user || !["ADMIN", "ORGANIZER"].includes(role)) {
-            window.location.href = "./index.html";
+            window.location.href = "/";
             return;
         }
 
@@ -146,7 +146,7 @@ async function init() {
         renderStats();
 
         btnCreateEvent?.addEventListener("click", () => {
-            window.location.href = "./create_event.html";
+            window.location.href = "/create_event";
         });
 
     } catch (err) {
