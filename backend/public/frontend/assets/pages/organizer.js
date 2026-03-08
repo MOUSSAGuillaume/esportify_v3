@@ -7,26 +7,30 @@ const qEl = document.querySelector("#q");
 const statusEl = document.querySelector("#status");
 const sortEl = document.querySelector("#sort");
 const refreshBtn = document.querySelector("#refreshBtn");
-const logoutBtn = document.querySelector("#logoutBtn");
 
 function fmt(dt) {
     if (!dt) return "-";
     const d = new Date(String(dt).replace(" ", "T"));
-    return isNaN(d) ? dt : d.toLocaleString("fr-FR");
+    return Number.isNaN(d.getTime()) ? dt : d.toLocaleString("fr-FR");
 }
 
 function badge(status) {
     switch (status) {
-        case "VALIDATED": return "success";
-        case "PENDING": return "warning";
-        case "REJECTED": return "danger";
-        case "SUSPENDED": return "secondary";
-        default: return "dark";
+        case "VALIDATED":
+            return "success";
+        case "PENDING":
+            return "warning";
+        case "REJECTED":
+            return "danger";
+        case "SUSPENDED":
+            return "secondary";
+        default:
+            return "dark";
     }
 }
 
-function escapeHtml(s) {
-    return String(s ?? "")
+function escapeHtml(value) {
+    return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
         .replaceAll(">", "&gt;")
@@ -34,15 +38,32 @@ function escapeHtml(s) {
         .replaceAll("'", "&#039;");
 }
 
-function canStart(e) {
-    if (e.status !== "VALIDATED") return false;
-    if (e.started_at) return false;
-    if (e.finished_at) return false;
-    if (!e.start_at) return false;
+function canStart(event) {
+    if (event.status !== "VALIDATED") return false;
+    if (event.started_at) return false;
+    if (event.finished_at) return false;
+    if (!event.start_at) return false;
 
-    const start = new Date(String(e.start_at).replace(" ", "T"));
+    const start = new Date(String(event.start_at).replace(" ", "T"));
+    if (Number.isNaN(start.getTime())) return false;
+
     const now = new Date();
-    return (start - now) <= 30 * 60 * 1000;
+    const diffMs = start.getTime() - now.getTime();
+
+    // Affichage front : bouton actif à partir de 30 min avant
+    return diffMs <= 30 * 60 * 1000;
+}
+
+function getStartButtonHtml(event) {
+    if (event.started_at) {
+        return `<button class="btn btn-sm btn-info" disabled>En cours</button>`;
+    }
+
+    if (canStart(event)) {
+        return `<button class="btn btn-sm btn-success js-start" data-id="${event.id}">Démarrer</button>`;
+    }
+
+    return `<button class="btn btn-sm btn-outline-secondary" disabled>Démarrer</button>`;
 }
 
 async function loadEvents() {
@@ -56,43 +77,48 @@ async function loadEvents() {
     render(res?.events || []);
 }
 
-function render(events) {
+function renderEmptyState() {
     tbody.innerHTML = `
     <tr>
-        <td colspan="6" class="text-muted py-4">
-            <div class="d-flex align-items-center justify-content-center gap-2">
-            <span class="badge bg-secondary">Aucun événement</span>
-            <span>Crée un événement puis attends la validation admin.</span>
-            </div>
-        </td>
-    </tr>`;
+      <td colspan="6" class="text-muted py-4">
+        <div class="d-flex align-items-center justify-content-center gap-2">
+          <span class="badge bg-secondary">Aucun événement</span>
+          <span>Crée un événement puis attends la validation admin.</span>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function render(events) {
+    tbody.innerHTML = "";
 
     if (!events.length) {
-        tbody.innerHTML = `<tr><td colspan="6" class="text-muted">Aucun événement.</td></tr>`;
+        renderEmptyState();
         return;
     }
 
-    for (const e of events) {
-        const startBtn = canStart(e)
-            ? `<button class="btn btn-sm btn-success js-start" data-id="${e.id}">Démarrer</button>`
-            : `<button class="btn btn-sm btn-outline-secondary" disabled>Démarrer</button>`;
+    for (const event of events) {
+        const startBtn = getStartButtonHtml(event);
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
-      <td class="fw-semibold">${escapeHtml(e.title)}</td>
-      <td><span class="badge bg-${badge(e.status)}">${escapeHtml(e.status)}</span></td>
-      <td>${Number(e.registered_count ?? 0)}/${Number(e.max_players ?? 0) || "-"}</td>
-      <td>${fmt(e.start_at)}</td>
-      <td>${fmt(e.end_at)}</td>
+      <td class="fw-semibold">${escapeHtml(event.title)}</td>
+      <td>
+        <span class="badge bg-${badge(event.status)}">${escapeHtml(event.status)}</span>
+      </td>
+      <td>${Number(event.registered_count ?? 0)}/${Number(event.max_players ?? 0) || "-"}</td>
+      <td>${fmt(event.start_at)}</td>
+      <td>${fmt(event.end_at)}</td>
       <td class="text-end">
         <button
           class="btn btn-sm btn-primary js-regs"
-          data-id="${e.id}"
-          data-title="${escapeHtml(e.title)}"
-          data-start="${escapeHtml(e.start_at || '')}"
-          data-end="${escapeHtml(e.end_at || '')}"
-          data-status="${escapeHtml(e.status || '')}">
-          Inscriptions
+          data-id="${event.id}"
+          data-title="${escapeHtml(event.title)}"
+          data-start="${escapeHtml(event.start_at || "")}"
+          data-end="${escapeHtml(event.end_at || "")}"
+          data-status="${escapeHtml(event.status || "")}">
+          Voir inscrits
         </button>
         ${startBtn}
       </td>
@@ -105,30 +131,49 @@ async function openRegs(eventId, meta) {
     const res = await api(`/events/${eventId}/registrations`);
     const regs = res?.registrations || [];
 
-    document.querySelector("#modalTitle").textContent = `Inscriptions — ${meta.title}`;
-    document.querySelector("#modalMeta").textContent =
-        `Début: ${meta.start || '-'} — Fin: ${meta.end || '-'} — Statut: ${meta.status || '-'}`;
-
+    const modalTitle = document.querySelector("#modalTitle");
+    const modalMeta = document.querySelector("#modalMeta");
     const list = document.querySelector("#regsList");
+
+    if (!modalTitle || !modalMeta || !list) return;
+
+    modalTitle.textContent = `Joueurs inscrits — ${meta.title}`;
+    modalMeta.textContent =
+        `Début : ${meta.start || "-"} — Fin : ${meta.end || "-"} — Statut : ${meta.status || "-"}`;
+
     list.innerHTML = "";
 
     if (!regs.length) {
-        list.innerHTML = `<li class="list-group-item text-muted">Aucune inscription.</li>`;
+        list.innerHTML = `
+      <li class="list-group-item text-muted">
+        Aucun joueur inscrit pour cet événement.
+      </li>
+    `;
     } else {
-        for (const r of regs) {
-            const refused = r.status === "REFUSED";
-            list.insertAdjacentHTML("beforeend", `
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-          <div>
-            <div class="fw-semibold">${escapeHtml(r.pseudo)}</div>
-            <div class="text-muted small">${escapeHtml(r.email)} — ${escapeHtml(r.status)}</div>
-          </div>
-          <button class="btn btn-sm btn-outline-danger js-refuse"
-                  data-event="${eventId}" data-user="${r.user_id}" ${refused ? "disabled" : ""}>
-            Refuser
-          </button>
-        </li>
-      `);
+        for (const reg of regs) {
+            const refused = reg.status === "REFUSED";
+
+            list.insertAdjacentHTML(
+                "beforeend",
+                `
+          <li class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+              <div class="fw-semibold">${escapeHtml(reg.pseudo)}</div>
+              <div class="text-muted small">
+                ${escapeHtml(reg.email)} — ${escapeHtml(reg.status)}
+              </div>
+            </div>
+
+            <button
+              class="btn btn-sm btn-outline-danger js-refuse"
+              data-event="${eventId}"
+              data-user="${reg.user_id}"
+              ${refused ? "disabled" : ""}>
+              Refuser
+            </button>
+          </li>
+        `
+            );
         }
     }
 
@@ -138,68 +183,85 @@ async function openRegs(eventId, meta) {
 
 async function refusePlayer(eventId, userId) {
     await fetchCsrf();
+
     await api(`/events/${eventId}/registrations/${userId}/refuse`, {
         method: "POST",
         csrf: true,
         body: {}
     });
+
     toast("Joueur refusé ✅", "success");
-    await openRegs(eventId, { title: "Inscriptions", start: "", end: "", status: "" });
+
+    const title =
+        document.querySelector("#modalTitle")?.textContent?.replace("Joueurs inscrits — ", "") ||
+        "Inscriptions";
+
+    await openRegs(eventId, {
+        title,
+        start: "",
+        end: "",
+        status: ""
+    });
 }
 
-async function startEvent(eventId) {
-    await fetchCsrf();
-    await api(`/events/${eventId}/start`, {
-        method: "POST",
-        csrf: true,
-        body: {}
-    });
-    toast("Événement démarré ✅", "success");
-    await loadEvents();
+async function startEvent(eventId, btn) {
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = "Démarrage...";
+    }
+
+    try {
+        await fetchCsrf();
+
+        const res = await api(`/events/${eventId}/start`, {
+            method: "POST",
+            csrf: true,
+            body: {}
+        });
+
+        toast(res?.message || "Événement démarré ✅", "success");
+        await loadEvents();
+    } catch (err) {
+        console.error("START ERROR", err);
+        toast(err.message || "Start refusé", "danger");
+
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = "Démarrer";
+        }
+    }
 }
 
 form?.addEventListener("submit", (e) => {
     e.preventDefault();
-    loadEvents().catch(err => toast(err.message || "Erreur", "danger"));
+    loadEvents().catch((err) => toast(err.message || "Erreur", "danger"));
 });
 
 refreshBtn?.addEventListener("click", () => {
-    loadEvents().catch(err => toast(err.message || "Erreur", "danger"));
+    loadEvents().catch((err) => toast(err.message || "Erreur", "danger"));
 });
 
 document.addEventListener("click", (e) => {
     const regsBtn = e.target.closest(".js-regs");
     if (regsBtn) {
-        const id = regsBtn.dataset.id;
-        openRegs(id, {
+        openRegs(regsBtn.dataset.id, {
             title: regsBtn.dataset.title,
             start: regsBtn.dataset.start,
             end: regsBtn.dataset.end,
             status: regsBtn.dataset.status
-        }).catch(err => toast(err.message || "Erreur", "danger"));
+        }).catch((err) => toast(err.message || "Erreur", "danger"));
     }
 
     const refuseBtn = e.target.closest(".js-refuse");
     if (refuseBtn) {
-        refusePlayer(refuseBtn.dataset.event, refuseBtn.dataset.user)
-            .catch(err => toast(err.message || "Erreur", "danger"));
+        refusePlayer(refuseBtn.dataset.event, refuseBtn.dataset.user).catch((err) =>
+            toast(err.message || "Erreur", "danger")
+        );
     }
 
     const startBtn = e.target.closest(".js-start");
     if (startBtn) {
-        startEvent(startBtn.dataset.id)
-            .catch(err => toast(err.message || "Start refusé", "danger"));
-    }
-});
-
-logoutBtn?.addEventListener("click", async () => {
-    if (!e.target.closest("#logoutBtn")) return;
-    try {
-        await fetchCsrf();
-        await api("/logout", { method: "POST", csrf: true, body: {} });
-        window.location.href = "/frontend/login.html";
-    } catch {
-        window.location.href = "/frontend/login.html";
+        startEvent(startBtn.dataset.id, startBtn);
     }
 });
 
