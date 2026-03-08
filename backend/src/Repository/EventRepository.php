@@ -160,11 +160,21 @@ final class EventRepository
     public function findById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, organizer_id, start_at, end_at, status, started_at, finished_at
-            FROM events
-            WHERE id = :id
-            LIMIT 1
-        ");
+        SELECT
+            id,
+            organizer_id,
+            title,
+            description,
+            start_at,
+            end_at,
+            max_players,
+            status,
+            started_at,
+            finished_at
+        FROM events
+        WHERE id = :id
+        LIMIT 1
+    ");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }

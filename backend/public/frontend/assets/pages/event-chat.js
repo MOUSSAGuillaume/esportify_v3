@@ -118,9 +118,13 @@ function renderMessages(messages) {
 function renderEventMeta(event) {
     if (!event) return;
 
+    const title = event.title || "Événement";
+
     if (titleEl) {
-        titleEl.textContent = `Direct — ${event.title || "Événement"}`;
+        titleEl.textContent = `Direct — ${title}`;
     }
+
+    document.title = `Esportify — Direct ${title}`;
 
     if (metaEl) {
         const started = event.started_at ? fmtDateTime(event.started_at) : "non démarré";
