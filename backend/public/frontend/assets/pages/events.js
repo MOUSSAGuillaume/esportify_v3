@@ -215,7 +215,7 @@ function actionButton(e) {
 
   if (!currentUser) {
     return `
-      <a href="./login.html" class="btn btn-outline-light w-100">
+      <a href="/login" class="btn btn-outline-light w-100">
         Se connecter
       </a>
     `;
@@ -223,7 +223,7 @@ function actionButton(e) {
 
   return `
     <div class="d-flex gap-2">
-      <a class="btn btn-outline-light w-100" href="./event.html?id=${encodeURIComponent(id)}">
+      <a class="btn btn-outline-light w-100" href="/event?id=${encodeURIComponent(id)}">
         Voir
       </a>
 

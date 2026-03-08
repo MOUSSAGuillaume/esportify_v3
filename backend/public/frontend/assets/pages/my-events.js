@@ -227,7 +227,7 @@ async function init() {
         await loadCurrentUser();
     } catch {
         // non connecté → login
-        window.location.href = "./login.html";
+        window.location.href = "/login";
         return;
     }
 

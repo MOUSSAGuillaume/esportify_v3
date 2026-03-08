@@ -455,7 +455,7 @@ async function loadProfile() {
     render();
   } catch (e) {
     console.error("Failed to load profile:", e);
-    globalThis.location.href = "./login.html";
+    globalThis.location.href = "/login";
   }
 }
 
