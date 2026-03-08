@@ -246,8 +246,8 @@ function renderAuthUI(me) {
     ensureBootstrapIcons();
     await ensureBootstrapJs();
 
-    await inject("#app-header", "./partials/header.html");
-    await inject("#app-footer", "./partials/footer.html");
+    await inject("#app-header", "/partials/header.html");
+    await inject("#app-footer", "/partials/footer.html");
 
     getCsrfToken().catch(() => { });
 
