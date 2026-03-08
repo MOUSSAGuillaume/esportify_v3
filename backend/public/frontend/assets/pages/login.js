@@ -52,7 +52,7 @@ function validateForm() {
 }
 
 goRegister?.addEventListener("click", () => {
-  window.location.href = "./register.html";
+  window.location.href = "/register";
 });
 
 form?.addEventListener("submit", async (e) => {
@@ -81,17 +81,17 @@ form?.addEventListener("submit", async (e) => {
 
     // Redirection cohérente
     if (role === "ADMIN") {
-      window.location.href = "./profile.html";
+      window.location.href = "/profile";
       return;
     }
 
     if (role === "ORGANIZER") {
-      window.location.href = "./profile.html";
+      window.location.href = "/profile";
       return;
     }
 
     // joueur par défaut
-    window.location.href = "./profile.html";
+    window.location.href = "/profile";
   } catch (err) {
     const msg = err?.data?.error || err?.message || "Erreur de connexion";
     showError(msg);
