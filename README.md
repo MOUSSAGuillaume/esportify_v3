@@ -1,4 +1,4 @@
-Esportify v3 — Backend (PHP + MySQL + MongoDB)
+Esportify v3 — Backend (PHP + MySQL + MongoDB) branch pour prérarer au déploement
 
 Prérequis
 - Docker Desktop
