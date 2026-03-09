@@ -162,19 +162,14 @@ async function loadCurrentUser() {
 }
 
 async function tryLoadMyRegistrations() {
-    const data = await api("/me");
-
-    if (Array.isArray(data?.registrations)) return data.registrations;
-    if (Array.isArray(data?.items)) return data.items;
-    if (Array.isArray(data?.data)) return data.data;
-
-    return [];
+    const data = await api("/me/registrations");
+    return Array.isArray(data?.events) ? data.events : [];
 }
 
 async function handleUnregister(eventId) {
     try {
         await fetchCsrf();
-        await api(`/events/${eventId}/register`, { method: "DELETE", csrf: true });
+        await api(`/events/${eventId}/unregister`, { method: "POST", csrf: true });
         toast("Désinscription réussie", "success");
         items = items.filter(x => String(getId(x)) !== String(eventId));
         render();
