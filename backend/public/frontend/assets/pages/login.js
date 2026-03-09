@@ -81,7 +81,7 @@ form?.addEventListener("submit", async (e) => {
 
     // Redirection cohérente
     if (role === "ADMIN") {
-      window.location.replace("/profile");
+      window.location.href = "/profile";
       return;
     }
 
