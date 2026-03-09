@@ -164,7 +164,7 @@ if ($path === '/events' && $method === 'GET') {
 }
 
 if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
-    (new EventController($eventsRepo))->show((int)$m[1]);
+    (new EventController($eventsRepo, $regRepo))->show((int)$m[1]);
     exit;
 }
 
