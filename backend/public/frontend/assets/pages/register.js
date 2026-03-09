@@ -66,8 +66,7 @@ await loadLayout();*/
     function closePopup() {
         if (!els.popup) return;
         els.popup.style.display = "none";
-        // ✅ cohérent avec ton front HTML
-        window.location.href = "./index.html";
+        window.location.href = "/";
     }
 
     if (els.closePopupBtn) els.closePopupBtn.addEventListener("click", closePopup);

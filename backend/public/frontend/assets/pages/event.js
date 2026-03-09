@@ -148,7 +148,7 @@ btnRegister?.addEventListener("click", async () => {
     try {
         btnRegister.disabled = true;
         await fetchCsrf();
-        await api(`/events/${eventId}/register`, { method: "POST", csrf: true });
+        await api(`/events/${eventId}/register`, { method: "DELETE", csrf: true });
 
         toast("Inscription réussie", "success");
 
