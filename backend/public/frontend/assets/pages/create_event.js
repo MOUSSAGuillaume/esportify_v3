@@ -41,7 +41,7 @@ async function requireOrganizerOrAdmin() {
 
     const role = String(user?.role || "").toUpperCase();
     if (!user || !["ADMIN", "ORGANIZER"].includes(role)) {
-        window.location.href = "./index.html";
+        window.location.href = "/index";
         return null;
     }
 
@@ -103,7 +103,7 @@ async function handleSubmit(e) {
         }
 
         setTimeout(() => {
-            window.location.href = "./admin_events.html";
+            window.location.href = "/admin_events";
         }, 900);
 
     } catch (err) {
