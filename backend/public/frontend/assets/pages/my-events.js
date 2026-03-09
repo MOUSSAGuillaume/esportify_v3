@@ -128,7 +128,7 @@ function cardTemplate(obj) {
           </p>
 
           <div class="mt-auto d-flex gap-2">
-            <a class="btn btn-outline-light w-100" href="./event.html?id=${encodeURIComponent(id)}">Voir</a>
+            <a class="btn btn-outline-light w-100" href="/event?id=${encodeURIComponent(id)}">Voir</a>
             <button type="button" class="btn btn-outline-danger w-100 btn-unregister" data-id="${id}">
               Se désinscrire
             </button>
@@ -162,29 +162,13 @@ async function loadCurrentUser() {
 }
 
 async function tryLoadMyRegistrations() {
-    // fallback automatique : tu peux supprimer ce fallback quand tu confirmes ton endpoint
-    const candidates = ["/me/registrations", "/me/events", "/registrations/me"];
+    const data = await api("/me");
 
-    let lastErr = null;
-    for (const path of candidates) {
-        try {
-            const data = await api(path);
-            // tolérant: {items:[]}, {events:[]}, {registrations:[]}, []...
-            const arr =
-                data?.items ??
-                data?.events ??
-                data?.registrations ??
-                data?.data ??
-                data;
+    if (Array.isArray(data?.registrations)) return data.registrations;
+    if (Array.isArray(data?.items)) return data.items;
+    if (Array.isArray(data?.data)) return data.data;
 
-            if (Array.isArray(arr)) return arr;
-            if (Array.isArray(arr?.items)) return arr.items;
-            // si c'est un objet unique pas prévu, continue
-        } catch (e) {
-            lastErr = e;
-        }
-    }
-    throw lastErr ?? new Error("Impossible de charger les inscriptions");
+    return [];
 }
 
 async function handleUnregister(eventId) {
