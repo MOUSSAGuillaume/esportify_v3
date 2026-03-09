@@ -63,9 +63,8 @@
 
   async function loadCsrf() {
     const data = await apiFetch("/csrf");
-    CSRF = data?.csrfToken || null;
+    CSRF = data?.token || data?.csrfToken || null;
   }
-
   function buildLegendEvents(items) {
     const legend = $("legendEvents");
     if (!legend) return;
@@ -89,16 +88,16 @@
     const usersTotal = st.users?.total ?? 0;
     const eventsTotal = st.events?.total ?? 0;
 
-    const pending   = st.events?.byStatus?.PENDING ?? 0;
+    const pending = st.events?.byStatus?.PENDING ?? 0;
     const validated = st.events?.byStatus?.VALIDATED ?? 0;
-    const rejected  = st.events?.byStatus?.REJECTED ?? 0;
+    const rejected = st.events?.byStatus?.REJECTED ?? 0;
     const suspended = st.events?.byStatus?.SUSPENDED ?? 0;
 
     const unread = st.messages?.unread ?? 0;
 
-    const usersPlayer    = st.users?.byRole?.PLAYER ?? 0;
+    const usersPlayer = st.users?.byRole?.PLAYER ?? 0;
     const usersOrganizer = st.users?.byRole?.ORGANIZER ?? 0;
-    const usersAdmin     = st.users?.byRole?.ADMIN ?? 0;
+    const usersAdmin = st.users?.byRole?.ADMIN ?? 0;
 
     $("statUsers").textContent = usersTotal;
     $("statEvents").textContent = eventsTotal;
@@ -205,7 +204,7 @@
         <td>${escapeHtml(u.pseudo || "")}</td>
         <td>
           <select class="form-select form-select-sm bg-dark text-white border border-white/10" data-role-user="${u.id}">
-            ${["PLAYER","ORGANIZER","ADMIN"].map(r => `<option value="${r}" ${r===role?"selected":""}>${r}</option>`).join("")}
+            ${["PLAYER", "ORGANIZER", "ADMIN"].map(r => `<option value="${r}" ${r === role ? "selected" : ""}>${r}</option>`).join("")}
           </select>
         </td>
         <td>${Number(u.is_active) === 1 ? "✅" : "❌"}</td>
@@ -215,9 +214,9 @@
           <div class="btn-group btn-group-sm">
             <button class="btn btn-outline-light" data-user-action="saveRole" data-id="${u.id}">Enregistrer rôle</button>
             ${suspended
-              ? `<button class="btn btn-success" data-user-action="unsuspend" data-id="${u.id}">Réactiver</button>`
-              : `<button class="btn btn-danger" data-user-action="suspend" data-id="${u.id}">Suspendre</button>`
-            }
+          ? `<button class="btn btn-success" data-user-action="unsuspend" data-id="${u.id}">Réactiver</button>`
+          : `<button class="btn btn-danger" data-user-action="suspend" data-id="${u.id}">Suspendre</button>`
+        }
           </div>
         </td>
       `;
@@ -273,7 +272,7 @@
 
       item.addEventListener("click", async () => {
         if (unread) {
-          await apiFetch(`/admin/messages/${m.id}/read`, { method: "POST" }).catch(() => {});
+          await apiFetch(`/admin/messages/${m.id}/read`, { method: "POST" }).catch(() => { });
         }
 
         $("modalSubject").textContent = m.subject || "Message";
