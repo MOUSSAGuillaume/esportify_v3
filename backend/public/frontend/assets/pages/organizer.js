@@ -73,7 +73,7 @@ function getLiveButtonHtml(event) {
     return `
     <a
       class="btn btn-sm btn-outline-light"
-      href="./event-chat.html?eventId=${event.id}">
+      href="/event-chat?eventId=${event.id}">
       Accéder au direct
     </a>
   `;
