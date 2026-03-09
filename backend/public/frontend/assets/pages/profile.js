@@ -158,9 +158,9 @@ function render() {
             </div>
 
             <div class="mt-4 d-flex flex-wrap gap-2">
-              ${canCreateEvent() ? `<a class="btn btn-primary" href="./create_event.html">Créer un événement</a>` : ""}
-              <a class="btn btn-outline-secondary" href="./events.html">Voir les événements</a>
-              ${isPlayer() ? `<a class="btn btn-outline-secondary" href="./my-events.html">Mes inscriptions</a>` : ""}
+              ${canCreateEvent() ? `<a class="btn btn-primary" href="/create_event">Créer un événement</a>` : ""}
+              <a class="btn btn-outline-secondary" href="/events">Voir les événements</a>
+              ${isPlayer() ? `<a class="btn btn-outline-secondary" href="/my-events">Mes inscriptions</a>` : ""}
             </div>
           </div>
         </div>
@@ -305,8 +305,8 @@ function renderCurrentGames(list) {
               </div>
             </div>
             <div class="d-flex gap-2 flex-wrap">
-              <a class="btn btn-sm btn-primary" href="./event.html?id=${encodeURIComponent(event.id)}">Voir</a>
-              <a class="btn btn-sm btn-outline-secondary" href="./event-chat.html?id=${encodeURIComponent(event.id)}">Accéder au chat</a>
+              <a class="btn btn-sm btn-primary" href="/event?id=${encodeURIComponent(event.id)}">Voir</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/event-chat?id=${encodeURIComponent(event.id)}">Accéder au chat</a>
             </div>
           </div>
         </div>
@@ -334,7 +334,7 @@ function renderRegistrations(list) {
               </div>
             </div>
             <div class="d-flex gap-2">
-              <a class="btn btn-sm btn-outline-secondary" href="./event.html?id=${encodeURIComponent(event.id)}">Détails</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/event?id=${encodeURIComponent(event.id)}">Détails</a>
             </div>
           </div>
         </div>
@@ -362,7 +362,7 @@ function renderPlayedGames(list) {
               </div>
             </div>
             <div class="d-flex gap-2">
-              <a class="btn btn-sm btn-outline-secondary" href="./event.html?id=${encodeURIComponent(event.id)}">Détails</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/event?id=${encodeURIComponent(event.id)}">Détails</a>
             </div>
           </div>
         </div>
@@ -391,7 +391,7 @@ function renderManagedEvents(list) {
               </div>
             </div>
             <div class="d-flex gap-2">
-              <a class="btn btn-sm btn-outline-secondary" href="./event.html?id=${encodeURIComponent(event.id)}">Détails</a>
+              <a class="btn btn-sm btn-outline-secondary" href="/event?id=${encodeURIComponent(event.id)}">Détails</a>
             </div>
           </div>
         </div>
@@ -443,9 +443,9 @@ async function loadProfile() {
   root.innerHTML = `<div class="text-center py-5">Chargement…</div>`;
 
   try {
-    const data = await api("/profile/me");
+    const data = await api("/me");
 
-    state.user = data.user;
+    state.user = data.user ?? data;
     state.registrations = data.registrations || [];
     state.events = data.events || [];
     state.form.pseudo = state.user?.pseudo || "";
