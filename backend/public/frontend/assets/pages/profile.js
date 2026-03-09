@@ -475,7 +475,7 @@ async function saveProfile() {
 
   try {
     await fetchCsrf();
-    await api("/profile/me", {
+    await api("/me", {
       method: "PUT",
       body: { pseudo, bio },
       csrf: true,
