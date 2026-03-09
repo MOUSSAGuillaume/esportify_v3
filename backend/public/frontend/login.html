@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr">
+
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -10,7 +11,7 @@
 </head>
 
 <body class="page-wrap">
-  
+
   <header id="app-header"></header>
 
   <main class="container py-4 py-lg-5">
@@ -23,12 +24,7 @@
             <div class="auth-card__overlay"></div>
 
             <!-- Tu peux changer l'image plus tard -->
-            <img
-              class="auth-card__img"
-              src="/assets/img/img2.jpg"
-              alt="Esportify"
-              loading="lazy"
-            />
+            <img class="auth-card__img" src="/assets/img/img2.jpg" alt="Esportify" loading="lazy" />
 
             <div class="auth-card__cta">
               <button id="goRegister" type="button" class="btn btn-light auth-card__btnCta">
@@ -46,30 +42,15 @@
             <form id="loginForm" class="mt-4" novalidate>
               <div class="mb-3">
                 <label for="email" class="form-label">Email</label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  class="form-control form-control-lg"
-                  placeholder="email@exemple.com"
-                  autocomplete="email"
-                  required
-                />
+                <input id="email" name="email" type="email" class="form-control form-control-lg"
+                  placeholder="email@exemple.com" autocomplete="email" required />
                 <div class="invalid-feedback">Veuillez saisir un email valide.</div>
               </div>
 
               <div class="mb-3">
                 <label for="password" class="form-label">Password</label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  class="form-control form-control-lg"
-                  placeholder="••••••••"
-                  autocomplete="current-password"
-                  required
-                  minlength="6"
-                />
+                <input id="password" name="password" type="password" class="form-control form-control-lg"
+                  placeholder="••••••••" autocomplete="current-password" required minlength="6" />
                 <div class="invalid-feedback">Mot de passe requis (6 caractères min).</div>
               </div>
 
@@ -89,12 +70,7 @@
               </div>
 
               <div class="d-flex align-items-center justify-content-between gap-3 mt-4">
-                <a
-                  href="#"
-                  class="auth-card__link"
-                  data-bs-toggle="modal"
-                  data-bs-target="#resetPasswordModal"
-                >
+                <a href="#" class="auth-card__link" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
                   Mot de passe oublié ?
                 </a>
 
@@ -118,10 +94,8 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="/assets/js/include.js"></script>
-
-  <!-- Page JS -->
-  <script  type="module" src="/assets/pages/login.js"></script>
+  <script src="/assets/js/include.js?v=20260309-1"></script>
+  <script type="module" src="/assets/pages/login.js?v=20260309-1"></script>
 
   <!-- Modal Reset Password -->
   <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
@@ -149,4 +123,5 @@
     </div>
   </div>
 </body>
+
 </html>
