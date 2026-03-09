@@ -455,7 +455,11 @@ async function loadProfile() {
     render();
   } catch (e) {
     console.error("Failed to load profile:", e);
-    globalThis.location.href = "/login";
+    root.innerHTML = `
+    <div class="alert alert-danger">
+      Erreur chargement profil : ${e?.message || "inconnue"}
+    </div>
+  `;
   }
 }
 
