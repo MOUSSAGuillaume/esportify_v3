@@ -220,6 +220,57 @@ final class EventRepository
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
+    public function updateById(int $eventId, array $data): bool
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE events
+        SET
+            title = :title,
+            description = :description,
+            start_at = :start_at,
+            end_at = :end_at,
+            max_players = :max_players
+        WHERE id = :id
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            'id'          => $eventId,
+            'title'       => $data['title'],
+            'description' => $data['description'],
+            'start_at'    => $data['start_at'],
+            'end_at'      => $data['end_at'],
+            'max_players' => (int)$data['max_players'],
+        ]);
+
+        return $stmt->rowCount() >= 0;
+    }
+    public function deleteById(int $eventId): bool
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmtRegs = $this->pdo->prepare("
+            DELETE FROM registrations
+            WHERE event_id = :id
+        ");
+            $stmtRegs->execute(['id' => $eventId]);
+
+            $stmtEvent = $this->pdo->prepare("
+            DELETE FROM events
+            WHERE id = :id
+            LIMIT 1
+        ");
+            $stmtEvent->execute(['id' => $eventId]);
+
+            $this->pdo->commit();
+            return $stmtEvent->rowCount() === 1;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+    
     public function setStartedNow(int $id): bool
     {
         $stmt = $this->pdo->prepare("

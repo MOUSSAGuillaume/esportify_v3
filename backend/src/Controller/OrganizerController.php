@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -119,5 +120,38 @@ final class OrganizerController
         if (!$ok) $this->json(['error' => 'Start non autorisé'], 403);
 
         $this->json(['ok' => true], 200);
+    }
+
+    public function updateEvent(int $eventId): void
+    {
+        $this->requireCsrf();
+        $me = $this->me();
+
+        $event = $this->canAccessEvent($eventId, $me);
+
+        if (!empty($event['started_at'])) $this->json(['error' => 'Événement déjà démarré'], 409);
+        if (!empty($event['finished_at'])) $this->json(['error' => 'Événement déjà terminé'], 409);
+
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+
+        $title = trim((string)($data['title'] ?? ''));
+        $desc  = trim((string)($data['description'] ?? ''));
+        $start = (string)($data['start_at'] ?? '');
+        $end   = (string)($data['end_at'] ?? '');
+        $max   = (int)($data['max_players'] ?? 0);
+
+        if ($title === '' || $desc === '' || $start === '' || $end === '' || $max <= 0) {
+            $this->json(['error' => 'Champs invalides'], 400);
+        }
+
+        $this->events->updateById($eventId, [
+            'title'       => $title,
+            'description' => $desc,
+            'start_at'    => $start,
+            'end_at'      => $end,
+            'max_players' => $max,
+        ]);
+
+        $this->json(['message' => 'Événement mis à jour'], 200);
     }
 }
