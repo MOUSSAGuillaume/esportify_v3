@@ -20,16 +20,13 @@
 
             <div class="admin-events-top mb-4">
                 <div>
-                    <h1 class="admin-events-title mb-2">Mes Événements</h1>
+                    <h1 class="admin-events-title mb-2">Mes événements</h1>
                     <p class="admin-events-subtitle mb-0">Gérez vos tournois et compétitions</p>
                 </div>
 
-                    <span class="me-2">
-                        <a href="/create_event" class="btn admin-events-create-btn">
-                            ＋ Nouvel événement
-                        </a>
-                    </span>
-                    
+                <a href="/create_event" class="btn admin-events-create-btn">
+                    ＋ Nouvel événement
+                </a>
             </div>
 
             <div class="row g-3 mb-4 admin-events-stats-row">
@@ -83,11 +80,9 @@
             </div>
 
             <div class="tab-content">
-
                 <div class="tab-pane fade show active" id="tab-active" role="tabpanel" aria-labelledby="tab-active-btn">
                     <div class="admin-events-panel">
                         <div id="activeList" class="admin-events-grid"></div>
-
                         <div id="activeEmpty" class="admin-events-empty d-none">
                             <div class="admin-events-empty-icon">📅</div>
                             <p class="mb-0">Aucun événement</p>
@@ -98,7 +93,6 @@
                 <div class="tab-pane fade" id="tab-pending" role="tabpanel" aria-labelledby="tab-pending-btn">
                     <div class="admin-events-panel">
                         <div id="pendingList" class="admin-events-grid"></div>
-
                         <div id="pendingEmpty" class="admin-events-empty d-none">
                             <div class="admin-events-empty-icon">⏳</div>
                             <p class="mb-0">Aucun événement en attente</p>
@@ -109,17 +103,115 @@
                 <div class="tab-pane fade" id="tab-history" role="tabpanel" aria-labelledby="tab-history-btn">
                     <div class="admin-events-panel">
                         <div id="historyList" class="admin-events-grid"></div>
-
                         <div id="historyEmpty" class="admin-events-empty d-none">
                             <div class="admin-events-empty-icon">🗂️</div>
                             <p class="mb-0">Aucun historique</p>
                         </div>
                     </div>
                 </div>
-
             </div>
         </div>
     </main>
+
+    <!-- MODAL : Modifier événement -->
+    <div class="modal fade" id="editEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content bg-dark text-white border border-secondary">
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier l’événement</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                    <form id="editEventForm" class="d-flex flex-column gap-3">
+                        <input type="hidden" id="editEventId" />
+
+                        <div>
+                            <label class="form-label" for="editTitle">Titre</label>
+                            <input type="text" class="form-control" id="editTitle" required />
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="editDescription">Description</label>
+                            <textarea class="form-control" id="editDescription" rows="3" required></textarea>
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="editStartAt">Début</label>
+                            <input type="datetime-local" class="form-control" id="editStartAt" required />
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="editEndAt">Fin</label>
+                            <input type="datetime-local" class="form-control" id="editEndAt" required />
+                        </div>
+
+                        <div>
+                            <label class="form-label" for="editMaxPlayers">Joueurs max</label>
+                            <input type="number" min="1" class="form-control" id="editMaxPlayers" required />
+                        </div>
+                    </form>
+                </div>
+
+                <div class="modal-footer d-flex justify-content-between">
+                    <button type="button" class="btn btn-danger" id="btnDeleteEvent">
+                        Supprimer
+                    </button>
+
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Annuler</button>
+                        <button type="button" class="btn btn-primary" id="btnSaveEditEvent">Enregistrer</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL : Gérer participants -->
+    <div class="modal fade" id="manageEventModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content bg-dark text-white border border-secondary">
+                <div class="modal-header">
+                    <h5 class="modal-title">Gérer les participants</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Fermer"></button>
+                </div>
+
+                <div class="modal-body">
+                    <input type="hidden" id="manageEventId" />
+
+                    <div class="mb-3">
+                        <h6 class="mb-1" id="manageEventTitle">Événement</h6>
+                        <p class="text-secondary mb-0" id="manageEventMeta">Chargement…</p>
+                    </div>
+
+                    <div id="manageParticipantsEmpty" class="alert alert-secondary d-none">
+                        Aucun participant inscrit.
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Pseudo</th>
+                                    <th>Email</th>
+                                    <th>Statut</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="manageParticipantsTbody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-light" data-bs-dismiss="modal">Fermer</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <footer id="app-footer"></footer>
 
