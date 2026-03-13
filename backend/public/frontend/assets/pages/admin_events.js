@@ -1,10 +1,12 @@
 import { api } from "../js/api.js";
 import { toast } from "../js/ui.js";
+import { initEditEventModal, openEditEventModal } from "./event-edit-modal.js";
+import { initEventManageModal, openEventManageModal } from "./event-manage-modal.js";
 
 const statTotal = document.getElementById("statTotal");
 const statPending = document.getElementById("statPending");
 const statActive = document.getElementById("statActive");
-const statFinished = document.getElementById("statFinished");
+const statFinished = document.getElementById("statHistory");
 
 const countActive = document.getElementById("countActive");
 const countPending = document.getElementById("countPending");
@@ -17,8 +19,6 @@ const historyList = document.getElementById("historyList");
 const activeEmpty = document.getElementById("activeEmpty");
 const pendingEmpty = document.getElementById("pendingEmpty");
 const historyEmpty = document.getElementById("historyEmpty");
-
-const btnCreateEvent = document.getElementById("btnCreateEvent");
 
 let allEvents = [];
 
@@ -64,25 +64,37 @@ function eventCard(event, mode = "default") {
     }
 
     return `
-      <div class="admin-event-card">
-        <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-          <div>
-            <div class="admin-event-title">${title}</div>
-            <div class="admin-event-meta">
-              Début : ${start}<br>
-              Joueurs max : ${maxPlayers}
-            </div>
+    <div class="admin-event-card">
+      <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
+        <div>
+          <div class="admin-event-title">${title}</div>
+          <div class="admin-event-meta">
+            Début : ${start}<br>
+            Joueurs max : ${maxPlayers}
           </div>
-          <span class="badge-status ${badgeClass}">${badgeLabel}</span>
         </div>
-
-        <div class="admin-event-actions">
-          <button class="btn btn-outline-light btn-sm" type="button">Voir</button>
-          ${mode === "active" ? `<button class="btn btn-primary btn-sm" type="button">Gérer</button>` : ""}
-          ${mode === "pending" ? `<button class="btn btn-outline-warning btn-sm" type="button">Modifier</button>` : ""}
-        </div>
+        <span class="badge-status ${badgeClass}">${badgeLabel}</span>
       </div>
-    `;
+
+      <div class="admin-event-actions">
+        <button class="btn btn-outline-light btn-sm btn-view-event" type="button" data-id="${event.id}">
+          Voir
+        </button>
+
+        ${mode === "active" ? `
+          <button class="btn btn-primary btn-sm btn-manage-event" type="button" data-id="${event.id}">
+            Gérer
+          </button>
+        ` : ""}
+
+        ${mode === "pending" || mode === "active" ? `
+          <button class="btn btn-outline-warning btn-sm btn-edit-event" type="button" data-id="${event.id}">
+            Modifier
+          </button>
+        ` : ""}
+      </div>
+    </div>
+  `;
 }
 
 function renderSection(listEl, emptyEl, items, mode) {
@@ -96,6 +108,32 @@ function renderSection(listEl, emptyEl, items, mode) {
 
     emptyEl.classList.add("d-none");
     listEl.innerHTML = items.map(item => eventCard(item, mode)).join("");
+
+    listEl.querySelectorAll(".btn-view-event").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const id = btn.dataset.id;
+            if (!id) return;
+            window.location.href = `/event?id=${encodeURIComponent(id)}`;
+        });
+    });
+
+    listEl.querySelectorAll(".btn-manage-event").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const id = Number(btn.dataset.id);
+            const event = items.find(e => Number(e.id) === id);
+            if (!event) return;
+            openEventManageModal(event);
+        });
+    });
+
+    listEl.querySelectorAll(".btn-edit-event").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const id = Number(btn.dataset.id);
+            const event = items.find(e => Number(e.id) === id);
+            if (!event) return;
+            openEditEventModal(event);
+        });
+    });
 }
 
 function renderStats() {
@@ -131,6 +169,11 @@ async function loadAdminEvents() {
     allEvents = [...validated, ...pending];
 }
 
+async function refreshPage() {
+    await loadAdminEvents();
+    renderStats();
+}
+
 async function init() {
     try {
         const me = await api("/me");
@@ -138,17 +181,19 @@ async function init() {
         const role = String(user?.role || "").toUpperCase();
 
         if (!user || !["ADMIN", "ORGANIZER"].includes(role)) {
-            window.location.href = "./index.html";
+            window.location.href = "/";
             return;
         }
 
-        await loadAdminEvents();
-        renderStats();
-
-        btnCreateEvent?.addEventListener("click", () => {
-            window.location.href = "./create_event.html";
+        initEditEventModal({
+            onSaved: refreshPage,
         });
 
+        initEventManageModal({
+            onChanged: refreshPage,
+        });
+
+        await refreshPage();
     } catch (err) {
         toast(err?.message || "Erreur lors du chargement", "danger");
     }

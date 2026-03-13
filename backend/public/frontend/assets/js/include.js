@@ -145,7 +145,7 @@ function renderAuthUI(me) {
   if (!user) {
     navAuth.innerHTML = `
       <div class="d-flex align-items-center gap-2">
-        <a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>
+        <a class="btn btn-outline-light btn-sm" href="/login">Connexion</a>
       </div>
     `;
     return;
@@ -154,10 +154,10 @@ function renderAuthUI(me) {
   const role = String(user.role || "PLAYER").toUpperCase();
   const pseudo = user.pseudo || user.email || "Compte";
 
-  const linkProfile = "./profile.html";
-  const linkMyEvents = "./my-events.html";
-  const linkOrganizer = role === "ADMIN" ? "./admin_events.html" : "./organizer.html";
-  const linkAdmin = "./admin.html";
+  const linkProfile = "/profile";
+  const linkMyEvents = "/my-events";
+  const linkOrganizer = role === "ADMIN" ? "/admin_events" : "/organizer";
+  const linkAdmin = "/admin";
 
   const organizerItem = canOrganizer(role)
     ? `
@@ -236,7 +236,7 @@ function renderAuthUI(me) {
       console.error(e);
     } finally {
       localStorage.removeItem("csrfToken");
-      window.location.href = "./index.html";
+      window.location.href = "/";
     }
   });
 }
@@ -246,8 +246,8 @@ function renderAuthUI(me) {
     ensureBootstrapIcons();
     await ensureBootstrapJs();
 
-    await inject("#app-header", "./partials/header.html");
-    await inject("#app-footer", "./partials/footer.html");
+    await inject("#app-header", "/partials/header.html");
+    await inject("#app-footer", "/partials/footer.html");
 
     getCsrfToken().catch(() => { });
 

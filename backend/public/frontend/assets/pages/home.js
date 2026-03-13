@@ -38,7 +38,7 @@ window.addEventListener("layout:ready", async (e) => {
 
   function eventMiniCard(ev, statusText) {
     return `
-      <a href="./event.html?id=${encodeURIComponent(ev.id)}"
+      <a href="/event?id=${encodeURIComponent(ev.id)}"
          class="text-decoration-none">
         <div class="border border-secondary rounded-3 p-3 bg-black bg-opacity-25">
           <div class="d-flex justify-content-between align-items-start gap-3">

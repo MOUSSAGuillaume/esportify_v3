@@ -1,4 +1,4 @@
-export const API_BASE_URL = "";
+export const API_BASE_URL = "/api";
 
 export const ROUTES = {
   csrf: "/csrf",
@@ -9,4 +9,4 @@ export const ROUTES = {
   leaderboard: "/leaderboard",
 };
 
-export const LOGIN_PAGE = "/frontend/login.html";
+export const LOGIN_PAGE = "/login";

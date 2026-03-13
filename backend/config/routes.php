@@ -157,6 +157,18 @@ if ($method === 'POST' && preg_match('#^/admin/messages/(\d+)/read$#', $path, $m
     exit;
 }
 
+if ($method === 'PUT' && preg_match('#^/admin/events/(\d+)$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    (new EventController($eventsRepo, $regRepo))->update((int)$m[1]);
+    exit;
+}
+
+if ($method === 'DELETE' && preg_match('#^/admin/events/(\d+)$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ADMIN']);
+    (new EventController($eventsRepo, $regRepo))->delete((int)$m[1]);
+    exit;
+}
+
 /* ---------------- EVENTS ---------------- */
 if ($path === '/events' && $method === 'GET') {
     (new EventController($eventsRepo))->list();
@@ -164,7 +176,7 @@ if ($path === '/events' && $method === 'GET') {
 }
 
 if ($method === 'GET' && preg_match('#^/events/(\d+)$#', $path, $m)) {
-    (new EventController($eventsRepo))->show((int)$m[1]);
+    (new EventController($eventsRepo, $regRepo))->show((int)$m[1]);
     exit;
 }
 
@@ -199,7 +211,7 @@ if ($method === 'GET' && preg_match('#^/events/(\d+)/registrations$#', $path, $m
     exit;
 }
 
-/* ---------------- ORGANIZER DASHBOARD ---------------- */
+/* ---------------- ORGANIZER ---------------- */
 if ($path === '/organizer/events' && $method === 'GET') {
     AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
     (new OrganizerController($eventsRepo, $regRepo))->listMyEvents();
@@ -224,6 +236,11 @@ if ($method === 'POST' && preg_match('#^/organizer/events/(\d+)/start$#', $path,
     exit;
 }
 
+if ($method === 'PUT' && preg_match('#^/organizer/events/(\d+)$#', $path, $m)) {
+    AuthMiddleware::requireRole(['ORGANIZER', 'ADMIN']);
+    (new OrganizerController($eventsRepo, $regRepo))->updateEvent((int)$m[1]);
+    exit;
+}
 /* ---------------- LIFECYCLE ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/start$#', $path, $m)) {
     AuthMiddleware::requireRole(['ORGANIZER']);
@@ -297,7 +314,6 @@ if ($method === 'GET' && preg_match('#^/users/(\d+)/(stats|results)$#', $path, $
 }
 
 /* ---------------- CHAT ---------------- */
-
 if ($method === 'GET' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
     AuthMiddleware::requireLogin();
     (new ChatController(

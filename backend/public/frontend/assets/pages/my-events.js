@@ -128,7 +128,7 @@ function cardTemplate(obj) {
           </p>
 
           <div class="mt-auto d-flex gap-2">
-            <a class="btn btn-outline-light w-100" href="./event.html?id=${encodeURIComponent(id)}">Voir</a>
+            <a class="btn btn-outline-light w-100" href="/event?id=${encodeURIComponent(id)}">Voir</a>
             <button type="button" class="btn btn-outline-danger w-100 btn-unregister" data-id="${id}">
               Se désinscrire
             </button>
@@ -162,35 +162,14 @@ async function loadCurrentUser() {
 }
 
 async function tryLoadMyRegistrations() {
-    // fallback automatique : tu peux supprimer ce fallback quand tu confirmes ton endpoint
-    const candidates = ["/me/registrations", "/me/events", "/registrations/me"];
-
-    let lastErr = null;
-    for (const path of candidates) {
-        try {
-            const data = await api(path);
-            // tolérant: {items:[]}, {events:[]}, {registrations:[]}, []...
-            const arr =
-                data?.items ??
-                data?.events ??
-                data?.registrations ??
-                data?.data ??
-                data;
-
-            if (Array.isArray(arr)) return arr;
-            if (Array.isArray(arr?.items)) return arr.items;
-            // si c'est un objet unique pas prévu, continue
-        } catch (e) {
-            lastErr = e;
-        }
-    }
-    throw lastErr ?? new Error("Impossible de charger les inscriptions");
+    const data = await api("/me/registrations");
+    return Array.isArray(data?.events) ? data.events : [];
 }
 
 async function handleUnregister(eventId) {
     try {
         await fetchCsrf();
-        await api(`/events/${eventId}/register`, { method: "DELETE", csrf: true });
+        await api(`/events/${eventId}/unregister`, { method: "POST", csrf: true });
         toast("Désinscription réussie", "success");
         items = items.filter(x => String(getId(x)) !== String(eventId));
         render();
@@ -227,7 +206,7 @@ async function init() {
         await loadCurrentUser();
     } catch {
         // non connecté → login
-        window.location.href = "./login.html";
+        window.location.href = "/login";
         return;
     }
 

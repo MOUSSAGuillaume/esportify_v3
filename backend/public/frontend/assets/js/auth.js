@@ -36,8 +36,8 @@ export async function authRenderNav() {
 
   if (!user?.id) {
     wrap.innerHTML = `
-      <a class="btn btn-outline-light btn-sm" href="./login.html">Connexion</a>
-      <a class="btn btn-warning btn-sm" href="./register.html">Inscription</a>
+      <a class="btn btn-outline-light btn-sm" href="/login">Connexion</a>
+      <a class="btn btn-warning btn-sm" href="/register">Inscription</a>
     `;
     return;
   }
@@ -50,6 +50,6 @@ export async function authRenderNav() {
 
   document.getElementById("btnLogout")?.addEventListener("click", async () => {
     await logout();
-    window.location.href = "./index.html";
+    window.location.href = "/";
   });
 }

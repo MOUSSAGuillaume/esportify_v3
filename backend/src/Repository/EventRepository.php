@@ -31,17 +31,36 @@ final class EventRepository
 
     public function listValidated(?string $sort, ?string $order): array
     {
-        $sortMap = ['date' => 'start_at', 'players' => 'max_players', 'organizer' => 'organizer_id'];
-        $col = $sortMap[$sort ?? 'date'] ?? 'start_at';
+        $sortMap = [
+            'date' => 'e.start_at',
+            'players' => 'e.max_players',
+            'organizer' => 'e.organizer_id'
+        ];
+        $col = $sortMap[$sort ?? 'date'] ?? 'e.start_at';
         $dir = strtolower($order ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 
         $stmt = $this->pdo->query("
-            SELECT id, organizer_id, title, description, start_at, end_at, max_players, status
-            FROM events
-            WHERE status = 'VALIDATED'
-            ORDER BY $col $dir
-            LIMIT 200
-        ");
+        SELECT
+            e.id,
+            e.organizer_id,
+            e.title,
+            e.description,
+            e.start_at,
+            e.end_at,
+            e.max_players,
+            e.status,
+            COALESCE(r.active_count, 0) AS registered_count
+        FROM events e
+        LEFT JOIN (
+            SELECT event_id, COUNT(*) AS active_count
+            FROM registrations
+            WHERE status = 'ACTIVE'
+            GROUP BY event_id
+        ) r ON r.event_id = e.id
+        WHERE e.status = 'VALIDATED'
+        ORDER BY $col $dir
+        LIMIT 200
+    ");
 
         return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
@@ -55,36 +74,51 @@ final class EventRepository
         int $limit = 200
     ): array {
         $sortMap = [
-            'date'      => 'start_at',
-            'players'   => 'max_players',
-            'organizer' => 'organizer_id',
+            'date'      => 'e.start_at',
+            'players'   => 'e.max_players',
+            'organizer' => 'e.organizer_id',
         ];
 
-        $col = $sortMap[$sort ?? 'date'] ?? 'start_at';
+        $col = $sortMap[$sort ?? 'date'] ?? 'e.start_at';
         $dir = strtolower($order ?? 'asc') === 'desc' ? 'DESC' : 'ASC';
 
         $limit = max(1, min(200, $limit));
 
         $sql = "
-        SELECT id, organizer_id, title, description, start_at, end_at, max_players, status
-        FROM events
-        WHERE status = 'VALIDATED'
+        SELECT
+            e.id,
+            e.organizer_id,
+            e.title,
+            e.description,
+            e.start_at,
+            e.end_at,
+            e.max_players,
+            e.status,
+            COALESCE(r.active_count, 0) AS registered_count
+        FROM events e
+        LEFT JOIN (
+            SELECT event_id, COUNT(*) AS active_count
+            FROM registrations
+            WHERE status = 'ACTIVE'
+            GROUP BY event_id
+        ) r ON r.event_id = e.id
+        WHERE e.status = 'VALIDATED'
     ";
 
         $params = [];
 
         if (is_string($q) && trim($q) !== '') {
-            $sql .= " AND (title LIKE :q OR description LIKE :q) ";
+            $sql .= " AND (e.title LIKE :q OR e.description LIKE :q) ";
             $params['q'] = '%' . trim($q) . '%';
         }
 
         if (is_string($from) && trim($from) !== '') {
-            $sql .= " AND start_at >= :from ";
+            $sql .= " AND e.start_at >= :from ";
             $params['from'] = trim($from);
         }
 
         if (is_string($to) && trim($to) !== '') {
-            $sql .= " AND start_at <= :to ";
+            $sql .= " AND e.start_at <= :to ";
             $params['to'] = trim($to);
         }
 
@@ -148,11 +182,18 @@ final class EventRepository
     public function findValidatedById(int $id): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, max_players, start_at, finished_at
-            FROM events
-            WHERE id = :id AND status = 'VALIDATED'
-            LIMIT 1
-        ");
+        SELECT
+            id,
+            organizer_id,
+            max_players,
+            start_at,
+            started_at,
+            finished_at,
+            status
+        FROM events
+        WHERE id = :id AND status = 'VALIDATED'
+        LIMIT 1
+    ");
         $stmt->execute(['id' => $id]);
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
@@ -179,6 +220,57 @@ final class EventRepository
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
+    public function updateById(int $eventId, array $data): bool
+    {
+        $stmt = $this->pdo->prepare("
+        UPDATE events
+        SET
+            title = :title,
+            description = :description,
+            start_at = :start_at,
+            end_at = :end_at,
+            max_players = :max_players
+        WHERE id = :id
+        LIMIT 1
+    ");
+
+        $stmt->execute([
+            'id'          => $eventId,
+            'title'       => $data['title'],
+            'description' => $data['description'],
+            'start_at'    => $data['start_at'],
+            'end_at'      => $data['end_at'],
+            'max_players' => (int)$data['max_players'],
+        ]);
+
+        return $stmt->rowCount() >= 0;
+    }
+    public function deleteById(int $eventId): bool
+    {
+        $this->pdo->beginTransaction();
+
+        try {
+            $stmtRegs = $this->pdo->prepare("
+            DELETE FROM registrations
+            WHERE event_id = :id
+        ");
+            $stmtRegs->execute(['id' => $eventId]);
+
+            $stmtEvent = $this->pdo->prepare("
+            DELETE FROM events
+            WHERE id = :id
+            LIMIT 1
+        ");
+            $stmtEvent->execute(['id' => $eventId]);
+
+            $this->pdo->commit();
+            return $stmtEvent->rowCount() === 1;
+        } catch (\Throwable $e) {
+            $this->pdo->rollBack();
+            throw $e;
+        }
+    }
+    
     public function setStartedNow(int $id): bool
     {
         $stmt = $this->pdo->prepare("
