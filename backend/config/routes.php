@@ -188,13 +188,13 @@ if ($path === '/events' && $method === 'POST') {
 
 /* ---------------- REGISTRATIONS ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
     (new EventRegistrationController($eventsRepo, $regRepo))->register((int)$m[1]);
     exit;
 }
 
 if ($method === 'POST' && preg_match('#^/events/(\d+)/unregister$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
     (new EventRegistrationController($eventsRepo, $regRepo))->unregister((int)$m[1]);
     exit;
 }
