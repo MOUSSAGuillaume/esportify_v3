@@ -14,12 +14,41 @@ final class UserRepository
     public function findByEmail(string $email): ?array
     {
         $stmt = $this->pdo->prepare("
-            SELECT id, email, password_hash, pseudo, role, is_active, is_suspended, created_at
+            SELECT
+                id,
+                email,
+                password_hash,
+                pseudo,
+                role,
+                is_active,
+                is_suspended,
+                is_verified,
+                created_at
             FROM users
             WHERE email = :email
             LIMIT 1
         ");
-        $stmt->execute(['email' => $email]);
+
+        $stmt->execute([
+            'email' => $email,
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function findByPseudo(string $pseudo): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT id, email, pseudo
+            FROM users
+            WHERE pseudo = :pseudo
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'pseudo' => $pseudo,
+        ]);
+
         return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
     }
 
@@ -29,17 +58,93 @@ final class UserRepository
             INSERT INTO users (email, password_hash, pseudo)
             VALUES (:email, :hash, :pseudo)
         ");
+
         $stmt->execute([
-            'email'  => $email,
-            'hash'   => $hash,
+            'email' => $email,
+            'hash' => $hash,
             'pseudo' => $pseudo,
+        ]);
+    }
+
+    public function createPending(string $email, string $hash, string $pseudo, string $token): void
+    {
+        $stmt = $this->pdo->prepare("
+            INSERT INTO users (
+                email,
+                password_hash,
+                pseudo,
+                is_verified,
+                verification_token,
+                verification_sent_at
+            ) VALUES (
+                :email,
+                :hash,
+                :pseudo,
+                0,
+                :token,
+                NOW()
+            )
+        ");
+
+        $stmt->execute([
+            'email' => $email,
+            'hash' => $hash,
+            'pseudo' => $pseudo,
+            'token' => $token,
+        ]);
+    }
+
+    public function findByVerificationToken(string $token): ?array
+    {
+        $stmt = $this->pdo->prepare("
+            SELECT
+                id,
+                email,
+                pseudo,
+                is_verified,
+                verification_token
+            FROM users
+            WHERE verification_token = :token
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'token' => $token,
+        ]);
+
+        return $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+
+    public function markVerified(int $id): void
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE users
+            SET
+                is_verified = 1,
+                verification_token = NULL,
+                verified_at = NOW()
+            WHERE id = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'id' => $id,
         ]);
     }
 
     public function exists(int $id): bool
     {
-        $stmt = $this->pdo->prepare("SELECT 1 FROM users WHERE id = :id LIMIT 1");
-        $stmt->execute(['id' => $id]);
+        $stmt = $this->pdo->prepare("
+            SELECT 1
+            FROM users
+            WHERE id = :id
+            LIMIT 1
+        ");
+
+        $stmt->execute([
+            'id' => $id,
+        ]);
+
         return (bool) $stmt->fetchColumn();
     }
 
@@ -47,17 +152,28 @@ final class UserRepository
     {
         $limit = max(1, min(500, $limit));
 
-        // Requête "riche"
         $sql1 = "
-            SELECT id, email, pseudo, role, is_active, is_suspended, created_at
+            SELECT
+                id,
+                email,
+                pseudo,
+                role,
+                is_active,
+                is_suspended,
+                is_verified,
+                created_at
             FROM users
             ORDER BY created_at DESC
             LIMIT {$limit}
         ";
 
-        // Fallback minimal
         $sql2 = "
-            SELECT id, email, pseudo, role, is_suspended
+            SELECT
+                id,
+                email,
+                pseudo,
+                role,
+                is_suspended
             FROM users
             ORDER BY id DESC
             LIMIT {$limit}
@@ -72,15 +188,33 @@ final class UserRepository
 
     public function updateRole(int $id, string $role): bool
     {
-        $stmt = $this->pdo->prepare("UPDATE users SET role = :role WHERE id = :id");
-        $stmt->execute([':role' => $role, ':id' => $id]);
+        $stmt = $this->pdo->prepare("
+            UPDATE users
+            SET role = :role
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            ':role' => $role,
+            ':id' => $id,
+        ]);
+
         return $stmt->rowCount() > 0;
     }
 
     public function setSuspended(int $id, bool $suspended): bool
     {
-        $stmt = $this->pdo->prepare("UPDATE users SET is_suspended = :s WHERE id = :id");
-        $stmt->execute([':s' => $suspended ? 1 : 0, ':id' => $id]);
+        $stmt = $this->pdo->prepare("
+            UPDATE users
+            SET is_suspended = :s
+            WHERE id = :id
+        ");
+
+        $stmt->execute([
+            ':s' => $suspended ? 1 : 0,
+            ':id' => $id,
+        ]);
+
         return $stmt->rowCount() > 0;
     }
 
@@ -91,35 +225,60 @@ final class UserRepository
 
     public function countByRole(string $role): int
     {
-        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM users WHERE role = :r");
-        $stmt->execute([':r' => $role]);
+        $stmt = $this->pdo->prepare("
+            SELECT COUNT(*)
+            FROM users
+            WHERE role = :r
+        ");
+
+        $stmt->execute([
+            ':r' => $role,
+        ]);
+
         return (int) $stmt->fetchColumn();
     }
 
     public function countSuspended(): int
     {
         try {
-            return (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE is_suspended = 1")->fetchColumn();
+            return (int) $this->pdo->query("
+                SELECT COUNT(*)
+                FROM users
+                WHERE is_suspended = 1
+            ")->fetchColumn();
         } catch (PDOException) {
             return 0;
         }
     }
 
-    /**
-     * Profil (page Profile)
-     * - Supporte bio si la colonne existe (fallback si non)
-     */
     public function findById(int $id): ?array
     {
         $sqlWithBio = "
-            SELECT id, email, pseudo, role, is_active, is_suspended, created_at, bio
+            SELECT
+                id,
+                email,
+                pseudo,
+                role,
+                is_active,
+                is_suspended,
+                is_verified,
+                created_at,
+                bio
             FROM users
             WHERE id = :id
             LIMIT 1
         ";
 
         $sqlNoBio = "
-            SELECT id, email, pseudo, role, is_active, is_suspended, created_at
+            SELECT
+                id,
+                email,
+                pseudo,
+                role,
+                is_active,
+                is_suspended,
+                is_verified,
+                created_at
             FROM users
             WHERE id = :id
             LIMIT 1
@@ -127,18 +286,26 @@ final class UserRepository
 
         try {
             $stmt = $this->pdo->prepare($sqlWithBio);
-            $stmt->execute(['id' => $id]);
-            $u = $stmt->fetch(PDO::FETCH_ASSOC);
-            return $u ?: null;
+            $stmt->execute([
+                'id' => $id,
+            ]);
+
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+            return $user ?: null;
         } catch (PDOException) {
             $stmt = $this->pdo->prepare($sqlNoBio);
-            $stmt->execute(['id' => $id]);
-            $u = $stmt->fetch(PDO::FETCH_ASSOC);
-            if (!$u) return null;
+            $stmt->execute([
+                'id' => $id,
+            ]);
 
-            // On normalise "bio" pour éviter des if partout côté front
-            $u['bio'] = null;
-            return $u;
+            $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if (!$user) {
+                return null;
+            }
+
+            $user['bio'] = null;
+            return $user;
         }
     }
 
@@ -166,7 +333,6 @@ final class UserRepository
                 'bio' => $bio,
             ]);
         } catch (PDOException) {
-            // si tu n’as pas encore ajouté la colonne bio
             $stmt = $this->pdo->prepare($sqlNoBio);
             $stmt->execute([
                 'id' => $id,
@@ -180,14 +346,24 @@ final class UserRepository
         $limit = max(1, min(500, $limit));
 
         $stmt = $this->pdo->prepare("
-        SELECT id, organizer_id, title, start_at, end_at, max_players, status, started_at, finished_at
-        FROM events
-        ORDER BY start_at DESC
-        LIMIT :lim
-    ");
-        $stmt->bindValue(':lim', $limit, \PDO::PARAM_INT);
+            SELECT
+                id,
+                organizer_id,
+                title,
+                start_at,
+                end_at,
+                max_players,
+                status,
+                started_at,
+                finished_at
+            FROM events
+            ORDER BY start_at DESC
+            LIMIT :lim
+        ");
+
+        $stmt->bindValue(':lim', $limit, PDO::PARAM_INT);
         $stmt->execute();
 
-        return $stmt->fetchAll(\PDO::FETCH_ASSOC) ?: [];
+        return $stmt->fetchAll(PDO::FETCH_ASSOC) ?: [];
     }
 }

@@ -103,7 +103,7 @@ async function handleSubmit(e) {
         }
 
         setTimeout(() => {
-            window.location.href = "/admin_events";
+            window.location.href = "/create_event";
         }, 900);
 
     } catch (err) {

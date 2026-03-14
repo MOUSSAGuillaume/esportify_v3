@@ -1,8 +1,5 @@
-import { loadLayout } from "../js/include.js";
 import { toast } from "../js/ui.js";
 import { api, fetchCsrf } from "../js/api.js";
-
-await loadLayout();
 
 const form = document.getElementById("contactForm");
 const btnSend = document.getElementById("btnSend");
@@ -39,14 +36,15 @@ function hideError() {
 function validate() {
   let ok = true;
 
-  // anti-spam
-  if (honeyEl && honeyEl.value.trim().length > 0) return false;
+  if (honeyEl && honeyEl.value.trim().length > 0) {
+    return false;
+  }
 
   const fields = [nameEl, emailEl, subjectEl, messageEl];
+
   for (const el of fields) {
     if (!el) continue;
 
-    // checkValidity gère email + required + minlength
     if (!el.value.trim() || !el.checkValidity()) {
       el.classList.add("is-invalid");
       ok = false;
@@ -74,7 +72,6 @@ function showForm() {
   formWrap?.classList.remove("d-none");
 }
 
-// Submit
 form?.addEventListener("submit", async (e) => {
   e.preventDefault();
   hideError();
@@ -89,23 +86,21 @@ form?.addEventListener("submit", async (e) => {
     email: emailEl.value.trim(),
     subject: subjectEl.value.trim(),
     message: messageEl.value.trim(),
+    company: honeyEl?.value?.trim() || "",
   };
 
   try {
     setLoading(true);
 
-    // CSRF puis envoi
     await fetchCsrf();
 
-    // ✅ Endpoint proposé : /contact
-    // Si ton backend utilise un autre endpoint, dis-moi le chemin exact et j’adapte.
-    await api("/contact", {
+    const result = await api("/contact", {
       method: "POST",
       csrf: true,
       body: payload,
     });
 
-    toast("Message envoyé ✅", "success");
+    toast(result?.message || "Message envoyé ✅", "success");
     showSuccess();
     resetForm();
   } catch (err) {

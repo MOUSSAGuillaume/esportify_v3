@@ -125,14 +125,13 @@ if ($path === '') {
 }
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
-/*
- * ============================================================
+/*============================================================
  * 8) Rate limit global (par IP + route)
  * - login/register: 10 req / 60s
  * - POST/DELETE (écriture): 60 req / 60s
  * - GET (lecture): 120 req / 60s
  * ============================================================
- */
+ * */
 if ($path === '/login' || $path === '/register') {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 10, 60);
 } elseif ($method === 'POST' || $method === 'PUT' || $method === 'DELETE') {
@@ -141,8 +140,7 @@ if ($path === '/login' || $path === '/register') {
     RateLimitMiddleware::throttle(RateLimitMiddleware::key($method, $path), 120, 60);
 }
 
-/*
- * ============================================================
+/*============================================================
  * 9) Routes
  * - Ton routes.php doit utiliser $pdo, $path, $method
  * - IMPORTANT: routes.php doit "exit" quand une route est matchée
@@ -150,8 +148,7 @@ if ($path === '/login' || $path === '/register') {
  */
 require __DIR__ . '/../config/routes.php';
 
-/*
- * ============================================================
+/*============================================================
  * 10) Fallback 404 propre
  * ============================================================
  */

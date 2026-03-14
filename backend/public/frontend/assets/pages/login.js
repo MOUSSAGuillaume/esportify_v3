@@ -31,6 +31,27 @@ function hideError() {
   loginError.classList.add("d-none");
 }
 
+function showVerificationMessageFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const verified = params.get("verified");
+  const error = params.get("error");
+
+  if (verified === "1") {
+    const msg = "Compte activé avec succès. Vous pouvez maintenant vous connecter.";
+    hideError();
+    toast(msg, "success");
+    return;
+  }
+
+  if (verified === "0") {
+    const msg = error
+      ? `Activation impossible : ${decodeURIComponent(error)}`
+      : "Activation impossible.";
+    showError(msg);
+    toast(msg, "danger");
+  }
+}
+
 function validateForm() {
   let ok = true;
 
@@ -50,6 +71,8 @@ function validateForm() {
 
   return ok;
 }
+
+showVerificationMessageFromUrl();
 
 goRegister?.addEventListener("click", () => {
   window.location.href = "/register";
@@ -79,7 +102,6 @@ form?.addEventListener("submit", async (e) => {
     const user = data?.user ?? null;
     const role = String(user?.role || "").toUpperCase();
 
-    // Redirection cohérente
     if (role === "ADMIN") {
       window.location.href = "/profile";
       return;
@@ -90,7 +112,6 @@ form?.addEventListener("submit", async (e) => {
       return;
     }
 
-    // joueur par défaut
     window.location.href = "/profile";
   } catch (err) {
     const msg = err?.data?.error || err?.message || "Erreur de connexion";

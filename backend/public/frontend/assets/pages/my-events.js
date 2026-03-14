@@ -162,8 +162,29 @@ async function loadCurrentUser() {
 }
 
 async function tryLoadMyRegistrations() {
-    const data = await api("/me/registrations");
-    return Array.isArray(data?.events) ? data.events : [];
+    const data = await api("/profile/me");
+
+    const registrations = Array.isArray(data?.registrations) ? data.registrations : [];
+    const events = Array.isArray(data?.events) ? data.events : [];
+
+    return registrations
+        .filter((registration) => {
+            const status = String(registration?.status || "").toUpperCase();
+            return status === "ACTIVE";
+        })
+        .map((registration) => {
+            const event = events.find(
+                (e) => Number(e.id) === Number(registration.event_id ?? registration.eventId)
+            );
+
+            if (!event) return null;
+
+            return {
+                ...registration,
+                event,
+            };
+        })
+        .filter(Boolean);
 }
 
 async function handleUnregister(eventId) {
@@ -214,6 +235,7 @@ async function init() {
 
     try {
         items = await tryLoadMyRegistrations();
+        tabSelect.value = "all";
         render();
         bind();
     } catch (err) {

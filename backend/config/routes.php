@@ -27,6 +27,8 @@ use App\Repository\ChatRepository;
 use App\Repository\ContactMessageRepository;
 use App\Service\AuthService;
 use App\Service\MongoClientFactory;
+use App\Service\MailerService;
+use App\Controller\ContactController;
 
 /*
 Variables dispo depuis index.php:
@@ -62,8 +64,13 @@ if ($path === '/profile/me' && $method === 'PUT') {
 }
 
 /* ---------------- AUTH ---------------- */
-if ($path === '/register' && $method === 'POST') {
-    (new AuthController(new AuthService($usersRepo)))->register();
+if ($path === '/signup' && $method === 'POST') {
+    $authService = new AuthService($usersRepo, new MailerService());
+    (new AuthController($authService))->register();
+    exit;
+}
+if ($path === '/verify-email' && $method === 'GET') {
+    (new AuthController(new AuthService($usersRepo, new MailerService())))->verifyEmail();
     exit;
 }
 if ($path === '/login' && $method === 'POST') {
@@ -188,7 +195,7 @@ if ($path === '/events' && $method === 'POST') {
 
 /* ---------------- REGISTRATIONS ---------------- */
 if ($method === 'POST' && preg_match('#^/events/(\d+)/register$#', $path, $m)) {
-    AuthMiddleware::requireRole(['PLAYER']);
+    AuthMiddleware::requireRole(['PLAYER', 'ORGANIZER', 'ADMIN']);
     (new EventRegistrationController($eventsRepo, $regRepo))->register((int)$m[1]);
     exit;
 }
@@ -331,5 +338,10 @@ if ($method === 'POST' && preg_match('#^/events/(\d+)/chat$#', $path, $m)) {
         $eventsRepo,
         $regRepo
     ))->post((int)$m[1]);
+    exit;
+}
+/*---------------- CONTACT ---------------- */
+if ($path === '/contact' && $method === 'POST') {
+    (new ContactController($contactRepo, new MailerService()))->send();
     exit;
 }

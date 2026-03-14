@@ -1,4 +1,5 @@
 <?php
+
 declare(strict_types=1);
 
 namespace App\Controller;
@@ -18,21 +19,25 @@ final class AuthController
         $data = json_decode(file_get_contents('php://input'), true);
 
         try {
-            $this->auth->register(
+            $mailSent = $this->auth->register(
                 $data['email'] ?? '',
                 $data['password'] ?? '',
                 $data['pseudo'] ?? ''
             );
 
             http_response_code(201);
-            echo json_encode(['message' => 'Utilisateur créé']);
+            echo json_encode([
+                'message' => $mailSent
+                    ? 'Compte créé avec succès. Vérifiez votre boîte mail pour activer votre compte.'
+                    : 'Compte créé avec succès, mais le mail de validation n’a pas pu être envoyé.'
+            ], JSON_UNESCAPED_UNICODE);
         } catch (Throwable $e) {
             http_response_code(400);
             echo json_encode(['error' => $e->getMessage()]);
         }
     }
 
-        public function login(): void
+    public function login(): void
     {
         header('Content-Type: application/json; charset=utf-8');
 
@@ -51,7 +56,6 @@ final class AuthController
                 'message' => 'Connecté',
                 'user' => $user
             ], JSON_UNESCAPED_UNICODE);
-
         } catch (Throwable $e) {
             http_response_code(400);
             echo json_encode(['error' => $e->getMessage()], JSON_UNESCAPED_UNICODE);
@@ -73,15 +77,21 @@ final class AuthController
         // 3) Clean token
         $csrf = is_string($csrf) ? trim($csrf, " \t\n\r\0\x0B\"'") : null;
 
-        if (!Csrf::validate($csrf)) {}
-        
+        if (!Csrf::validate($csrf)) {
+        }
+
         $_SESSION = [];
 
         if (ini_get("session.use_cookies")) {
             $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000,
-                $params["path"], $params["domain"],
-                $params["secure"], $params["httponly"]
+            setcookie(
+                session_name(),
+                '',
+                time() - 42000,
+                $params["path"],
+                $params["domain"],
+                $params["secure"],
+                $params["httponly"]
             );
         }
 
@@ -101,5 +111,19 @@ final class AuthController
         }
 
         echo json_encode(['user' => $_SESSION['user']], JSON_UNESCAPED_UNICODE);
+    }
+
+    public function verifyEmail(): void
+    {
+        try {
+            $token = $_GET['token'] ?? '';
+            $this->auth->verifyEmail((string)$token);
+
+            header('Location: /login?verified=1');
+            exit;
+        } catch (Throwable $e) {
+            header('Location: /login?verified=0&error=' . urlencode($e->getMessage()));
+            exit;
+        }
     }
 }
