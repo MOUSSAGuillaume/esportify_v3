@@ -154,10 +154,10 @@ function renderAuthUI(me) {
   const role = String(user.role || "PLAYER").toUpperCase();
   const pseudo = user.pseudo || user.email || "Compte";
 
-  const linkProfile = "/profile";
-  const linkMyEvents = "/my-events";
-  const linkOrganizer = role === "ADMIN" ? "/admin_events" : "/organizer";
-  const linkAdmin = "/admin";
+  const linkProfile = "./profile.html";
+  const linkMyEvents = "./my-events.html";
+  const linkOrganizer = role === "ADMIN" ? "./admin_events.html" : "./organizer.html";
+  const linkAdmin = "./admin.html";
 
   const organizerItem = canOrganizer(role)
     ? `
@@ -236,7 +236,7 @@ function renderAuthUI(me) {
       console.error(e);
     } finally {
       localStorage.removeItem("csrfToken");
-      window.location.href = "/";
+      window.location.href = "./index.html";
     }
   });
 }

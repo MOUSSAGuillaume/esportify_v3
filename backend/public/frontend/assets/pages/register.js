@@ -116,23 +116,24 @@ await loadLayout();*/
         }
 
         try {
-            const response = await fetch("/backend/signup.php", {
+            const response = await fetch("/signup", {
                 method: "POST",
-                headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
-                body: new URLSearchParams({
+                headers: {
+                    "Content-Type": "application/json;charset=UTF-8"
+                },
+                body: JSON.stringify({
                     email,
-                    username: pseudo,
-                    mot_de_passe: password,
-                    confirmer_mot_de_passe: confirmPassword,
+                    pseudo,
+                    password
                 }),
             });
 
-            const result = await response.text();
+            const result = await response.json();
 
-            if ((result || "").toLowerCase().includes("success")) {
+            if (response.ok) {
                 openPopup();
             } else {
-                setError(result || "❌ Inscription impossible. Veuillez réessayer.");
+                setError(result?.error || "❌ Inscription impossible. Veuillez réessayer.");
             }
         } catch (err) {
             console.error(err);

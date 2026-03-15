@@ -1,5 +1,55 @@
 /* ===== GLOBAL HEADER / NAVBAR ===== */
+/* Empêche le dropdown d’être coupé */
+#app-header,
+#app-header .navbar,
+#app-header .container,
+#app-header .navbar-collapse,
+#navAuth,
+.user-menu,
+.user-menu .dropdown {
+  overflow: visible !important;
+}
 
+/* Stabilise le bloc utilisateur */
+#navAuth {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+/* Menu dropdown propre */
+#navAuth .dropdown {
+  position: relative;
+}
+
+#navAuth .dropdown-menu,
+.user-dropdown {
+  min-width: 220px;
+  border-radius: 12px;
+  padding: 0.5rem;
+  z-index: 6000 !important;
+  right: 0;
+  left: auto;
+}
+
+/* En mobile : le menu prend la largeur dispo et ne part pas à gauche */
+@media (max-width: 991.98px) {
+  #navAuth {
+    width: 100%;
+    justify-content: flex-start;
+    margin-top: 0.75rem;
+  }
+
+  #navAuth .dropdown-menu,
+  .user-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0 !important;
+    right: auto !important;
+    min-width: 260px;
+    max-width: calc(100vw - 32px);
+  }
+}
 /* ===== HEADER AU-DESSUS DU CONTENU ===== */
 
 #app-header {

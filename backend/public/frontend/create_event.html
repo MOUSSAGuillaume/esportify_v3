@@ -18,9 +18,10 @@
     <main class="create-event-main">
         <div class="container create-event-container py-4 py-lg-5">
 
-            <a href="/admin_events" class="create-event-back">
-                <span class="me-2">←</span> Retour
-            </a>
+            <button onclick="if(history.length > 1){ history.back(); } else { window.location='/events'; }"
+                class="btn btn-link p-0 text-decoration-none">
+                ← Retour
+            </button>
 
             <div class="create-event-card">
                 <div class="create-event-card-header">

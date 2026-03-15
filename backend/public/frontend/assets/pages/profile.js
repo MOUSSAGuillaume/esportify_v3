@@ -443,7 +443,12 @@ async function loadProfile() {
   root.innerHTML = `<div class="text-center py-5">Chargement…</div>`;
 
   try {
-    const data = await api("/me");
+    console.log("TEST profile.js chargé");
+
+    const data = await api("/profile/me");
+    console.log("ME DATA", data);
+    console.log("REGISTRATIONS", data?.registrations);
+    console.log("EVENTS", data?.events);
 
     state.user = data.user ?? data;
     state.registrations = data.registrations || [];
@@ -456,10 +461,10 @@ async function loadProfile() {
   } catch (e) {
     console.error("Failed to load profile:", e);
     root.innerHTML = `
-    <div class="alert alert-danger">
-      Erreur chargement profil : ${e?.message || "inconnue"}
-    </div>
-  `;
+      <div class="alert alert-danger">
+        Erreur chargement profil : ${e?.message || "inconnue"}
+      </div>
+    `;
   }
 }
 
@@ -479,7 +484,7 @@ async function saveProfile() {
 
   try {
     await fetchCsrf();
-    await api("/me", {
+    await api("/profile/me", {
       method: "PUT",
       body: { pseudo, bio },
       csrf: true,
