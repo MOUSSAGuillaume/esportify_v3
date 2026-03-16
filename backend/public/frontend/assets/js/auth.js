@@ -27,12 +27,17 @@ export async function logout() {
   toast("Déconnecté", "secondary");
 }
 
+function safeText(value, fallback = "") {
+  const s = String(value ?? "").trim();
+  return s || fallback;
+}
+
 export async function authRenderNav() {
   const wrap = document.querySelector("#navAuth");
   if (!wrap) return;
 
   const data = await me();
-  const user = data?.user || data; // selon ton format API
+  const user = data?.user || data;
 
   if (!user?.id) {
     wrap.innerHTML = `
@@ -42,13 +47,31 @@ export async function authRenderNav() {
     return;
   }
 
-  const role = user.role || "";
-  wrap.innerHTML = `
-    <span class="text-light small me-2">${user.pseudo ?? "User"} <span class="badge text-bg-secondary">${role}</span></span>
-    <button class="btn btn-outline-light btn-sm" id="btnLogout">Logout</button>
-  `;
+  const pseudo = safeText(user.pseudo, "User");
+  const role = safeText(user.role, "PLAYER");
 
-  document.getElementById("btnLogout")?.addEventListener("click", async () => {
+  wrap.innerHTML = "";
+
+  const info = document.createElement("span");
+  info.className = "text-light small me-2";
+  info.textContent = `${pseudo} `;
+
+  const badge = document.createElement("span");
+  badge.className = "badge text-bg-secondary";
+  badge.textContent = role;
+
+  info.appendChild(badge);
+
+  const button = document.createElement("button");
+  button.className = "btn btn-outline-light btn-sm";
+  button.id = "btnLogout";
+  button.type = "button";
+  button.textContent = "Logout";
+
+  wrap.appendChild(info);
+  wrap.appendChild(button);
+
+  button.addEventListener("click", async () => {
     await logout();
     window.location.href = "/";
   });

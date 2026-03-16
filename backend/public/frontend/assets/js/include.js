@@ -7,9 +7,33 @@ function apiUrl(path) {
   return API_BASE.replace(/\/+$/, "") + "/" + p.replace(/^\/+/, "");
 }
 
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function safeText(value, fallback = "") {
+  const s = String(value ?? "").trim();
+  return s ? escapeHtml(s) : fallback;
+}
+
+function isTrustedPartial(url) {
+  return url === "/partials/header.html" || url === "/partials/footer.html";
+}
+
 async function inject(selector, url) {
   const el = document.querySelector(selector);
   if (!el) return;
+
+  if (!isTrustedPartial(url)) {
+    console.error(`Injection refusée pour une ressource non autorisée : ${url}`);
+    el.innerHTML = "";
+    return;
+  }
 
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) {
@@ -18,6 +42,7 @@ async function inject(selector, url) {
     return;
   }
 
+  // OK ici car ce sont des partials internes de confiance
   el.innerHTML = await res.text();
 }
 
@@ -63,15 +88,6 @@ async function loadMe() {
     console.error("loadMe error", e);
     return null;
   }
-}
-
-function escapeHtml(str) {
-  return String(str ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 function setActiveLink() {
@@ -152,7 +168,8 @@ function renderAuthUI(me) {
   }
 
   const role = String(user.role || "PLAYER").toUpperCase();
-  const pseudo = user.pseudo || user.email || "Compte";
+  const pseudo = safeText(user.pseudo || user.email || "Compte", "Compte");
+  const roleText = safeText(roleLabel(role), "Joueur");
 
   const linkProfile = "./profile.html";
   const linkMyEvents = "./my-events.html";
@@ -193,7 +210,7 @@ function renderAuthUI(me) {
           <div class="user-avatar">
             <i class="bi bi-person-fill"></i>
           </div>
-          <span class="user-name">${escapeHtml(pseudo)}</span>
+          <span class="user-name">${pseudo}</span>
         </button>
 
         <ul class="dropdown-menu dropdown-menu-end user-dropdown shadow">
@@ -225,7 +242,7 @@ function renderAuthUI(me) {
         </ul>
       </div>
 
-      <span class="badge user-role">${escapeHtml(roleLabel(role))}</span>
+      <span class="badge user-role">${roleText}</span>
     </div>
   `;
 

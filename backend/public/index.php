@@ -105,8 +105,8 @@ set_error_handler(static function (int $severity, string $message, string $file,
  */
 $pdo = new PDO(
     "mysql:host=mysql;dbname=esportify;charset=utf8mb4",
-    "esportify_user",
-    "esportify_pass",
+    "MYSQL_USER",
+    "MYSQL_PASSWORD",
     [
         PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
