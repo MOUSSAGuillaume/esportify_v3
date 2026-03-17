@@ -1,92 +1,214 @@
+Esportify v3 🚀
 
-Esportify v3 — Backend (PHP + MySQL + MongoDB) branch pour prérarer au déploement
+ 🎯 Présentation
 
+Esportify v3 est une plateforme web de gestion d’événements e-sport conçue avec une architecture moderne, sécurisée et maintenable.
 
-Prérequis
-- Docker Desktop
-- Postman (tests API)
-- DBeaver (MySQL)
-- MongoDB Compass (Mongo)
+👉 Cette version représente une **évolution complète** du projet initial :
 
-Lancer le projet
+* passage à une architecture **POO + MVC**
+* séparation claire des responsabilités
+* sécurisation avancée
+* conteneurisation avec Docker
+
+---
+
+ ⚙️ Stack technique
+
+* Backend : PHP (architecture MVC / POO)
+* Base principale : MySQL
+* Base secondaire : MongoDB (chat)
+* Serveur : Nginx (via Docker)
+* Outils : Docker, Postman, DBeaver
+
+---
+
+ 🧠 Architecture
+
+```
+Controller → Service → Repository → Database
+```
+
+* **Controller** : gestion des requêtes HTTP
+* **Service** : logique métier
+* **Repository** : accès aux données
+* **Security** : auth, CSRF, hash password
+
+---
+
+ 🔐 Sécurité
+
+* Authentification sécurisée (hash password)
+* Protection CSRF
+* Sessions HTTPOnly
+* RBAC (gestion des rôles)
+* Prévention XSS côté front (textContent)
+
+👉 Améliorations prévues :
+
+* MFA (double authentification)
+* RGPD
+
+---
+
+ 🚀 Installation (local)
+
+```bash
+git clone https://github.com/MOUSSAGuillaume/esportify_v3.git
+cd esportify_v3
+git checkout dev
+```
+
+```bash
 docker compose up -d --build
+```
 
-API: http://localhost:8080
-Vérifier la santé
-•	GET /health → doit renvoyer { ok: true, mysql: true, mongo: true }
+👉 Accès API : [http://localhost:8080](http://localhost:8080)
 
-Base de données MySQL (DBeaver)
-Connexion :
-•	Host: localhost
-•	Port: 3306
-•	Database: esportify
-•	User: esportify_user
-•	Password: esportify_pass
+---
 
-MongoDB (Mongo Compass)
-Connexion :
-•	Host: localhost
-•	Port: 27018 (mapping docker → mongo:27017)
-•	Username: mongoadmin
-•	Password: mongopass
-•	Auth DB: admin
-DB utilisée côté app: esportify_chat
-Collection: event_messages
+ 🧪 Tests API
 
-Initialisation DB
-MySQL
-Exécuter le script :
-•	backend/scripts/mysql_schema.sql
-Mongo (index)
-Dans Mongo Compass (ou mongosh) :
-•	backend/scripts/mongo_indexes.js
-Workflow API (Postman)
-1) CSRF
-•	GET /csrf → récupérer csrfToken
-•	Mettre le header sur les requêtes POST protégées :
-o	X-CSRF-Token: <token>
-2) Auth
-•	POST /register
-{ "email":"...", "password":"...", "pseudo":"..." }
-•	POST /login
-{ "email":"...", "password":"..." }
-•	GET /me → utilisateur courant (si cookie session OK)
-3) Events
-•	GET /events
-•	POST /events (ORGANIZER)
-4) Inscriptions
-•	POST /events/{id}/register (PLAYER)
-•	POST /events/{id}/unregister (PLAYER)
-•	GET /events/{id}/registrations (ORGANIZER/ADMIN)
-5) Lifecycle / Résultats
-•	POST /events/{id}/start (ORGANIZER)
-•	GET /events/{id}/join (PLAYER)
-•	POST /events/{id}/finish (ORGANIZER)
-•	GET /events/{id}/standings
+  1. Récupérer CSRF :
 
-6) Chat (Mongo)
-•	GET /events/{id}/chat
-•	POST /events/{id}/chat
-{ "message": "Hello team!" }
+```http
+GET /csrf
+```
 
-Notes sécurité
-•	Sessions HTTPOnly + SameSite=Lax
-•	CSRF token obligatoire sur POST sensibles
-•	RBAC via AuthMiddleware::requireRole()
-•	Endpoints /users/{id}/... protégés (ADMIN ou soi-même)
+  2. Login :
 
-# 3) Commit exact
-git add README.md backend/scripts/mysql_schema.sql backend/scripts/mongo_indexes.js
-git commit -m "docs(setup): add README and db init scripts (mysql + mongo)"
-git push
-________________________________________
-Ensuite (dernière étape “projet”)
-Comme tu m’as dit : à la fin on expliquera tout depuis le début → on fera un document “Rapport / Explications” :
-•	arborescence
-•	docker
-•	auth + csrf
-•	RBAC
-•	mysql + mongo
-•	postman flows
-•	points sécurité
+```http
+POST /login
+```
 
+  3. Events :
+
+```http
+GET /events
+POST /events
+```
+
+---
+
+ 📦 Déploiement (UpCloud)
+
+👉 Exemple de déploiement sécurisé (SANS données sensibles)
+
+  1. Créer un serveur
+
+* Aller sur [https://hub.upcloud.com](https://hub.upcloud.com)
+* Créer un serveur Ubuntu (22.04 recommandé)
+* Configuration conseillée : 1 CPU / 2GB RAM
+
+---
+
+ 2. Connexion SSH
+
+```bash
+ssh root@YOUR_SERVER_IP
+```
+
+---
+
+   3. Installer Docker
+
+```bash
+apt update && apt upgrade -y
+apt install docker.io docker-compose -y
+systemctl start docker
+systemctl enable docker
+```
+
+---
+
+  4. Cloner le projet
+
+```bash
+git clone https://github.com/MOUSSAGuillaume/esportify_v3.git
+cd esportify_v3
+```
+
+---
+
+  5. Configuration (.env)
+
+⚠️ IMPORTANT : ne jamais exposer les vraies données
+
+Exemple de fichier `.env` :
+
+```
+DB_HOST=mysql
+DB_NAME=example_db
+DB_USER=example_user
+DB_PASS=example_password
+
+MONGO_HOST=mongo
+MONGO_PORT=27017
+MONGO_USER=example_mongo_user
+MONGO_PASS=example_mongo_password
+```
+
+👉 Ces valeurs sont des **exemples uniquement**
+
+---
+
+  6. Lancer le projet
+
+```bash
+docker compose up -d --build
+```
+
+---
+
+  7. Ouvrir les ports
+
+* 80 (HTTP)
+* 443 (HTTPS recommandé)
+
+---
+
+   8. Accès
+
+👉 http://YOUR_SERVER_IP
+
+---
+
+ 🔥 Bonnes pratiques production
+
+* Utiliser HTTPS (Certbot + Nginx)
+* Ne jamais exposer `.env` (ajouter au `.gitignore`)
+* Utiliser des mots de passe forts
+* Restreindre accès base de données
+* Mettre en place des backups
+
+---
+
+ 📁 Structure
+
+```
+backend/
+ ├── Controller/
+ ├── Service/
+ ├── Repository/
+ ├── Security/
+```
+
+---
+
+ 🧪 Améliorations futures
+
+* MFA (double authentification)
+* RGPD
+* Monitoring
+* Dashboard React complet
+
+---
+
+ 👨‍💻 Auteur
+
+Projet réalisé dans le cadre d’une formation développeur web.
+
+---
+ 📜 Licence
+
+Projet pédagogique - 2026
